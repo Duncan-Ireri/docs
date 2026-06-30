@@ -1,0 +1,65 @@
+---
+title: "WooCommerce"
+description: "Add UrbnBox locker delivery as a WooCommerce shipping method."
+---
+
+The UrbnBox WooCommerce plugin requests a shipment quote during checkout and
+creates a shipment when an order reaches the completed state.
+
+## Prerequisites
+
+You need WordPress 6.0 or later, PHP 8.0 or later, WooCommerce, and an UrbnBox
+secret API key.
+
+## Install the plugin
+
+<Steps>
+  <Step title="Copy the plugin">
+    Copy `integrations/woocommerce/urbnbox-shipping.php` from the UrbnBox
+    integration package into:
+
+    ```text
+    wp-content/plugins/urbnbox-shipping/urbnbox-shipping.php
+    ```
+  </Step>
+
+  <Step title="Activate the plugin">
+    In WordPress, open **Plugins** and activate **UrbnBox Locker Shipping**.
+  </Step>
+
+  <Step title="Add the shipping method">
+    In WooCommerce, open **Settings** → **Shipping** → **Shipping zones**.
+    Edit a zone and add **UrbnBox Locker Pickup**.
+  </Step>
+
+  <Step title="Configure credentials">
+    Enter your UrbnBox secret key. Keep the API URL set to:
+
+    ```text
+    https://portal.urbnbox.io
+    ```
+  </Step>
+</Steps>
+
+## How rates work
+
+The plugin converts the cart weight to an UrbnBox weight tier and calls the
+shipment quote endpoint. It adds a checkout rate only when the response
+contains `"available": true`.
+
+The plugin reads the destination from WooCommerce's city field. Keep product
+weights and store city settings complete.
+
+## How shipment creation works
+
+The plugin calls `POST /api/partner/v1/shipments` after WooCommerce fires the
+`woocommerce_order_status_completed` action.
+
+<Warning>
+  The current plugin sends shipment creation as a non-blocking request and
+  does not store the response. Add operational monitoring or adapt the plugin
+  before relying on automatic creation in production.
+</Warning>
+
+The plugin maps the WooCommerce order ID to `external_reference`, the billing
+phone to `recipient_phone`, and the store and shipping cities to the route.

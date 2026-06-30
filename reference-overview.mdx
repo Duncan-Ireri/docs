@@ -1,0 +1,47 @@
+---
+title: "API reference overview"
+description: "Understand the UrbnBox integration API base URL, conventions, and endpoint groups."
+---
+
+The reference covers every route intended for external integrations in the
+current UrbnBox server.
+
+```text
+https://portal.urbnbox.io
+```
+
+## Endpoint groups
+
+| Group | Authentication | Purpose |
+| --- | --- | --- |
+| Partner API | `X-API-Key` | Quotes, shipments, availability, and checkout sessions |
+| Public booking API | Publishable `X-API-Key` where noted | Browser widget bookings |
+| Store discovery | None | Active store and nearby-store lookup |
+| Shopify callbacks | Shopify HMAC | Carrier rates and fulfillment |
+
+## Request conventions
+
+Send JSON bodies with `Content-Type: application/json`. Dates use `YYYY-MM-DD`.
+Money fields ending in `_cents` contain KES minor units.
+
+The partner API is versioned under `/api/partner/v1`. Public booking routes are
+not versioned.
+
+## Errors
+
+Some endpoints return JSON errors. Others return a plain-text error body.
+Always branch on the HTTP status before decoding the response.
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid JSON, date, query parameter, or required field |
+| `401` | Missing, invalid, or inactive credential |
+| `403` | Credential is not authorized for the operation |
+| `404` | The resource does not exist for this partner |
+| `422` | No lockers are available for the requested shipment |
+| `500` | UrbnBox could not complete the request |
+
+<Tip>
+  Use a stable `external_reference` for each order. Store the UrbnBox resource
+  ID with the order so you can reconcile and retrieve it later.
+</Tip>

@@ -1,53 +1,112 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "UrbnBox",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
+    "primary": "#111827",
+    "light": "#16A34A",
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "pages": [
+    "tabs": [
       {
-        "group": "Getting Started",
+        "tab": "Guides",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "guides/integration-options",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Integration guides",
+            "pages": [
+              "guides/checkout-widget",
+              "guides/shopify",
+              "guides/woocommerce"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/authentication"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "icon": "brackets-curly",
+        "openapi": "openapi.json",
         "pages": [
-          "index",
-          "quickstart"
+          "reference-overview",
+          {
+            "group": "Partner API",
+            "pages": [
+              "POST /api/partner/v1/shipment-quote",
+              "POST /api/partner/v1/shipments",
+              "GET /api/partner/v1/shipments/{id}",
+              "GET /api/partner/v1/locker-availability",
+              "POST /api/partner/v1/checkout-sessions",
+              "GET /api/partner/v1/checkout-sessions/{id}",
+              "POST /api/partner/v1/checkout-sessions/{id}/cancel"
+            ]
+          },
+          {
+            "group": "Public booking API",
+            "pages": [
+              "GET /api/public/stores",
+              "GET /api/public/stores/nearby",
+              "GET /api/public/locker-bookings/options",
+              "POST /api/public/locker-bookings"
+            ]
+          },
+          {
+            "group": "Shopify callbacks",
+            "pages": [
+              "POST /integrations/shopify/carrier-rates",
+              "POST /integrations/shopify/fulfillment"
+            ]
+          }
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "UrbnBox",
+          "href": "https://portal.urbnbox.io",
+          "icon": "globe"
         }
       ]
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/icon.png",
+    "dark": "/logo/icon.png"
   },
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "API quickstart",
+        "href": "/quickstart"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "UrbnBox app",
+      "href": "https://portal.urbnbox.io"
+    }
+  },
+  "api": {
+    "openapi": "openapi.json",
+    "playground": {
+      "display": "interactive",
+      "proxy": false
     }
   },
   "contextual": {
@@ -61,12 +120,5 @@
       "cursor",
       "vscode"
     ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
   }
 }

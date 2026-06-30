@@ -1,0 +1,69 @@
+---
+title: "Shopify"
+description: "Connect Shopify carrier rates and fulfillment events to UrbnBox."
+---
+
+The Shopify integration supports two server-to-server callbacks:
+
+- A carrier service callback that returns an UrbnBox checkout rate.
+- A fulfillment webhook that creates an UrbnBox shipment.
+
+Both callbacks validate Shopify's `X-Shopify-Hmac-Sha256` signature against the
+raw request body.
+
+## Prerequisites
+
+You need:
+
+- A Shopify app secret configured in UrbnBox.
+- An UrbnBox partner record linked to your `*.myshopify.com` domain.
+- Permission to configure a Shopify carrier service and webhook.
+
+## Configure carrier rates
+
+Register this callback URL as the carrier service:
+
+```text
+https://portal.urbnbox.io/integrations/shopify/carrier-rates
+```
+
+For an available route, UrbnBox returns the `urbnbox_locker` service in KES.
+When no locker is available, it returns an empty `rates` array.
+
+## Configure fulfillment
+
+Register this callback URL for the fulfillment event used by your app:
+
+```text
+https://portal.urbnbox.io/integrations/shopify/fulfillment
+```
+
+The request must include the `X-Shopify-Shop-Domain` header. UrbnBox uses it to
+find the partner account.
+
+When the route has available lockers, UrbnBox creates a shipment and returns
+its ID and tracking URL.
+
+```json
+{
+  "shipment_id": "3f8a2c1d-4d9e-4abc-81fd-7b234f114c99",
+  "tracking_url": "https://portal.urbnbox.io/s/s4a9f1b2c3d4e5f6"
+}
+```
+
+<Warning>
+  The current callback acknowledges unknown stores, invalid fulfillment
+  payloads, and unavailable routes with `200 OK`. Monitor UrbnBox shipment
+  creation instead of treating every Shopify acknowledgement as a created
+  shipment.
+</Warning>
+
+## Weight tiers
+
+UrbnBox calculates a tier from the total line-item weight.
+
+| Total weight | Tier |
+| --- | --- |
+| Less than 5 kg | `light` |
+| 5 kg to less than 20 kg | `medium` |
+| 20 kg or more | `heavy` |

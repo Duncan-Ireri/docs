@@ -1,0 +1,51 @@
+---
+title: "Authentication"
+description: "Authenticate UrbnBox server-side and browser-side API requests."
+---
+
+UrbnBox accepts API keys in the `X-API-Key` header.
+
+```http
+X-API-Key: ub_test_your_secret_key
+```
+
+## Secret keys
+
+Use a secret key for calls from your backend. Secret keys can create shipments
+and access partner-owned resources.
+
+Test secret keys begin with `ub_test_`. Live secret keys begin with `ub_live_`.
+
+<Warning>
+  Never expose a secret key in HTML, client-side JavaScript, a mobile
+  application, logs, or source control.
+</Warning>
+
+Store the key in your deployment platform's secret manager or an environment
+variable.
+
+```bash
+export URBNBOX_API_KEY="ub_test_your_secret_key"
+```
+
+## Publishable keys
+
+Use a publishable key only with the checkout widget and public locker-booking
+endpoints. Test publishable keys begin with `ubp_test_`. Live publishable keys
+begin with `ubp_live_`.
+
+UrbnBox validates the request's `Origin` header against the origins configured
+for the key. Add every checkout origin, including each staging origin, to the
+key's allowlist.
+
+## Authentication errors
+
+| Status | Meaning | Action |
+| --- | --- | --- |
+| `401` | The key is missing, invalid, or inactive | Check the header and key status |
+| `403` | The key lacks access or is not linked to a partner | Use the correct key type and partner |
+
+<Note>
+  Shopify callbacks use `X-Shopify-Hmac-Sha256` instead of an UrbnBox API key.
+  Shopify generates this signature from the raw request body.
+</Note>

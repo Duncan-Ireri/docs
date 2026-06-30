@@ -1,47 +1,106 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "API quickstart"
+description: "Quote a route, create your first UrbnBox shipment, and retrieve its status."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+Use the partner API when your backend controls checkout or fulfillment. This
+quickstart creates one locker-to-locker shipment.
 
 ## Prerequisites
 
-Before you begin, you must have:
+Before you begin, you need:
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+- An active UrbnBox partner account.
+- A secret test or live API key.
+- The origin and destination city.
+- The recipient's name and phone number.
 
-## Get started
+<Warning>
+  Keep secret keys on your server. Never add a key beginning with `ub_live_` or
+  `ub_test_` to browser code, a mobile app, or a public repository.
+</Warning>
+
+## Create a shipment
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+  <Step title="Request a quote">
+    Confirm that lockers are available and retrieve the fee in KES minor units.
 
     ```bash
-    npm install your-package
+    curl --request POST \
+      --url https://portal.urbnbox.io/api/partner/v1/shipment-quote \
+      --header "Content-Type: application/json" \
+      --header "X-API-Key: $URBNBOX_API_KEY" \
+      --data '{
+        "destination_city": "Mombasa",
+        "weight_tier": "light",
+        "starts_at": "2026-07-05",
+        "ends_at": "2026-07-08"
+      }'
     ```
+
+    Continue only when the response contains `"available": true`.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+
+  <Step title="Create the shipment">
+    Send the order and recipient details from your backend.
 
     ```bash
-    your-cli init
+    curl --request POST \
+      --url https://portal.urbnbox.io/api/partner/v1/shipments \
+      --header "Content-Type: application/json" \
+      --header "X-API-Key: $URBNBOX_API_KEY" \
+      --data '{
+        "external_reference": "ORDER-1001",
+        "recipient_name": "Jane Mwangi",
+        "recipient_phone": "+254712345678",
+        "origin_city": "Nairobi",
+        "destination_city": "Mombasa",
+        "weight_tier": "light",
+        "starts_at": "2026-07-05",
+        "ends_at": "2026-07-08"
+      }'
     ```
+
+    Save the returned `id`, `tracking_url`, and `deposit_pin`.
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+
+  <Step title="Retrieve the shipment">
+    Use the shipment ID to read its current status.
 
     ```bash
-    your-cli start
+    curl \
+      --url https://portal.urbnbox.io/api/partner/v1/shipments/SHIPMENT_ID \
+      --header "X-API-Key: $URBNBOX_API_KEY"
     ```
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+<Check>
+  Your integration works when the API returns the same shipment ID and a
+  tracking URL.
+</Check>
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+## Handle the creation response
+
+The `deposit_pin` appears in the creation response. Store it securely at that
+time. It is not returned by the retrieve endpoint.
+
+You can send `deposit_whatsapp_link` to the person who deposits the parcel. Send
+`collection_whatsapp_link` to the recipient when your fulfillment flow requires
+it.
+
+All fee values ending in `_cents` use KES minor units. For example, `85000`
+represents KES 850.00.
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Authentication" icon="key" href="/concepts/authentication">
+    Choose and secure the correct API key.
+  </Card>
+  <Card title="Endpoint reference" icon="rectangle-code"
+    href="/reference-overview">
+    Review every integration-facing endpoint.
+  </Card>
+</Columns>

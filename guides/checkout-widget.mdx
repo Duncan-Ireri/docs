@@ -1,0 +1,68 @@
+---
+title: "Checkout widget"
+description: "Embed the UrbnBox locker booking widget in an existing checkout."
+---
+
+The checkout widget renders a locker picker, date fields, and customer contact
+fields. It creates a locker booking through the browser-safe public API.
+
+## Prerequisites
+
+You need a publishable API key and an allowlisted checkout origin. Do not use a
+secret key.
+
+## Embed the widget
+
+Add the container and script near your checkout controls.
+
+```html
+<div
+  data-urbnbox-checkout
+  data-api-base="https://portal.urbnbox.io/api"
+  data-publishable-key="ubp_test_your_publishable_key"
+  data-name-selector="#customer-name"
+  data-phone-selector="#customer-phone"
+  data-confirmation-base="https://portal.urbnbox.io"
+></div>
+
+<script
+  src="https://portal.urbnbox.io/static/widgets/urbnbox-checkout.js"
+  async
+></script>
+```
+
+The widget mounts after the document loads. It finds every element with the
+`data-urbnbox-checkout` attribute.
+
+## Configuration
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `data-api-base` | No | API root. Defaults to `/api` on the current origin |
+| `data-publishable-key` | Yes | Browser-safe publishable key |
+| `data-name-selector` | No | Selector used to prefill the customer's name |
+| `data-phone-selector` | No | Selector used to prefill the customer's phone |
+| `data-confirmation-base` | No | Origin used to resolve the booking receipt URL |
+
+## Booking flow
+
+The widget:
+
+1. Calls `GET /api/public/locker-bookings/options`.
+2. Renders active locker spaces.
+3. Collects the locker, date window, name, and phone number.
+4. Calls `POST /api/public/locker-bookings`.
+5. Links the customer to `/b/{token}`.
+
+<Info>
+  The widget books a locker. Use the partner shipment API when you need
+  locker-to-locker parcel movement and shipment tracking.
+</Info>
+
+## Test the integration
+
+Open the checkout from an allowlisted origin. Confirm that the widget lists
+lockers and returns a booking receipt after submission.
+
+If the widget shows an authentication error, verify the key type and allowed
+origin. If it shows no lockers, check current space availability.

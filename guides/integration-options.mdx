@@ -1,0 +1,55 @@
+---
+title: "Choose an integration"
+description: "Compare the UrbnBox API, checkout widget, Shopify, and WooCommerce integration paths."
+---
+
+Choose the integration based on where you can run trusted server-side code and
+how much control you need.
+
+| Integration | Runs in | Credential | Use it when |
+| --- | --- | --- | --- |
+| Partner API | Your backend | Secret key | You control fulfillment logic |
+| Checkout widget | Customer's browser | Publishable key | You need a locker picker with minimal code |
+| Shopify | Shopify and UrbnBox | Shopify HMAC | You need carrier rates and fulfillment automation |
+| WooCommerce | WordPress | Secret key | You need a shipping method in WooCommerce |
+
+## Partner API
+
+The partner API gives you the most control. Your backend requests a quote,
+creates a shipment, stores the returned identifiers, and checks shipment state.
+
+Use this path for custom storefronts, marketplaces, mobile backends, and order
+management systems.
+
+<Card title="Create a shipment with the API" icon="arrow-right"
+  href="/quickstart">
+  Follow the API quickstart.
+</Card>
+
+## Checkout widget
+
+The widget renders a locker selector and booking form. It calls the public
+booking endpoints with an origin-restricted publishable key.
+
+Use this path when you can add HTML and JavaScript to checkout but do not want
+to build a locker selection interface.
+
+<Card title="Embed the checkout widget" icon="arrow-right"
+  href="/guides/checkout-widget">
+  Add the widget to your page.
+</Card>
+
+## Ecommerce platforms
+
+The Shopify integration exposes carrier and fulfillment callbacks. The
+WooCommerce plugin requests a quote during checkout and creates a shipment
+after an order reaches the completed state.
+
+<Columns cols={2}>
+  <Card title="Shopify" icon="shopify" href="/guides/shopify">
+    Configure carrier rates and fulfillment.
+  </Card>
+  <Card title="WooCommerce" icon="wordpress" href="/guides/woocommerce">
+    Install and configure the shipping method.
+  </Card>
+</Columns>
