@@ -31,21 +31,33 @@
     {
       "name": "Shopify",
       "description": "Callbacks called by Shopify."
+    },
+    {
+      "name": "Vendor API",
+      "description": "Vendor-authenticated endpoints. All require X-API-Key header with a vendor-scoped key."
     }
   ],
   "paths": {
     "/api/partner/v1/shipment-quote": {
       "post": {
-        "tags": ["Shipments"],
+        "tags": [
+          "Shipments"
+        ],
         "summary": "Create a shipment quote",
         "description": "Checks locker availability and returns a fee quote. The origin locker is selected by the server.",
         "operationId": "createShipmentQuote",
-        "security": [{"partnerKey": []}],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"$ref": "#/components/schemas/ShipmentQuoteRequest"},
+              "schema": {
+                "$ref": "#/components/schemas/ShipmentQuoteRequest"
+              },
               "example": {
                 "destination_city": "Mombasa",
                 "weight_tier": "light",
@@ -62,36 +74,61 @@
               "application/json": {
                 "schema": {
                   "oneOf": [
-                    {"$ref": "#/components/schemas/ShipmentQuote"},
+                    {
+                      "$ref": "#/components/schemas/ShipmentQuote"
+                    },
                     {
                       "type": "object",
-                      "properties": {"available": {"type": "boolean", "const": false}},
-                      "required": ["available"]
+                      "properties": {
+                        "available": {
+                          "type": "boolean",
+                          "const": false
+                        }
+                      },
+                      "required": [
+                        "available"
+                      ]
                     }
                   ]
                 }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "403": {"$ref": "#/components/responses/Forbidden"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/partner/v1/shipments": {
       "post": {
-        "tags": ["Shipments"],
+        "tags": [
+          "Shipments"
+        ],
         "summary": "Create a shipment",
         "description": "Creates a locker-to-locker shipment. This endpoint requires a secret partner key. The deposit PIN is returned only in this response.",
         "operationId": "createShipment",
-        "security": [{"partnerKey": []}],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"$ref": "#/components/schemas/CreateShipmentRequest"},
+              "schema": {
+                "$ref": "#/components/schemas/CreateShipmentRequest"
+              },
               "example": {
                 "external_reference": "ORDER-1001",
                 "recipient_name": "Jane Mwangi",
@@ -110,39 +147,59 @@
             "description": "Shipment created.",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/CreatedShipment"}
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedShipment"
+                }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "403": {"$ref": "#/components/responses/Forbidden"},
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
           "422": {
             "description": "No lockers are available for the requested route and dates.",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/JSONError"}
+                "schema": {
+                  "$ref": "#/components/schemas/JSONError"
+                }
               }
             }
           },
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/partner/v1/shipments/{id}": {
       "get": {
-        "tags": ["Shipments"],
+        "tags": [
+          "Shipments"
+        ],
         "summary": "Retrieve a shipment",
         "description": "Returns a shipment owned by the authenticated partner.",
         "operationId": "getShipment",
-        "security": [{"partnerKey": []}],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "description": "Shipment ID returned during creation.",
-            "schema": {"type": "string"}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -150,24 +207,40 @@
             "description": "Current shipment details.",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/Shipment"}
+                "schema": {
+                  "$ref": "#/components/schemas/Shipment"
+                }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "403": {"$ref": "#/components/responses/Forbidden"},
-          "404": {"$ref": "#/components/responses/NotFound"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/partner/v1/locker-availability": {
       "get": {
-        "tags": ["Checkout sessions"],
+        "tags": [
+          "Checkout sessions"
+        ],
         "summary": "List locker availability",
         "description": "Returns active locker spaces available for partner checkout.",
         "operationId": "listLockerAvailability",
-        "security": [{"partnerKey": []}],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Available locker spaces.",
@@ -175,37 +248,53 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {"$ref": "#/components/schemas/LockerSpace"}
+                  "items": {
+                    "$ref": "#/components/schemas/LockerSpace"
+                  }
                 }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/partner/v1/checkout-sessions": {
       "post": {
-        "tags": ["Checkout sessions"],
+        "tags": [
+          "Checkout sessions"
+        ],
         "summary": "Create a checkout session",
         "description": "Creates a partner checkout session and holds a locker. Supply an Idempotency-Key when retrying a request.",
         "operationId": "createCheckoutSession",
-        "security": [{"partnerKey": []}],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
             "in": "header",
             "required": false,
             "description": "Stable key used to prevent duplicate sessions.",
-            "schema": {"type": "string"}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"$ref": "#/components/schemas/CreateCheckoutSessionRequest"}
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+              }
             }
           }
         },
@@ -214,30 +303,48 @@
             "description": "Checkout session created.",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/CheckoutSession"}
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSession"
+                }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "403": {"$ref": "#/components/responses/Forbidden"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/partner/v1/checkout-sessions/{id}": {
       "get": {
-        "tags": ["Checkout sessions"],
+        "tags": [
+          "Checkout sessions"
+        ],
         "summary": "Retrieve a checkout session",
         "description": "Returns a checkout session owned by the authenticated partner.",
         "operationId": "getCheckoutSession",
-        "security": [{"partnerKey": []}],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": {"type": "string"}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -245,30 +352,48 @@
             "description": "Checkout session details.",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/CheckoutSession"}
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSession"
+                }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "403": {"$ref": "#/components/responses/Forbidden"},
-          "404": {"$ref": "#/components/responses/NotFound"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/partner/v1/checkout-sessions/{id}/cancel": {
       "post": {
-        "tags": ["Checkout sessions"],
+        "tags": [
+          "Checkout sessions"
+        ],
         "summary": "Cancel a checkout session",
         "description": "Cancels a partner checkout session.",
         "operationId": "cancelCheckoutSession",
-        "security": [{"partnerKey": []}],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": {"type": "string"}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -278,21 +403,36 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {"status": {"type": "string", "const": "cancelled"}},
-                  "required": ["status"]
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "const": "cancelled"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
                 }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "403": {"$ref": "#/components/responses/Forbidden"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/public/stores": {
       "get": {
-        "tags": ["Store discovery"],
+        "tags": [
+          "Store discovery"
+        ],
         "summary": "List public stores",
         "description": "Returns active stores and their locker and shelf capacity.",
         "operationId": "listPublicStores",
@@ -304,18 +444,24 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {"$ref": "#/components/schemas/PublicStore"}
+                  "items": {
+                    "$ref": "#/components/schemas/PublicStore"
+                  }
                 }
               }
             }
           },
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/public/stores/nearby": {
       "get": {
-        "tags": ["Store discovery"],
+        "tags": [
+          "Store discovery"
+        ],
         "summary": "Find nearby stores",
         "description": "Returns stores within a radius of a geographic coordinate.",
         "operationId": "findNearbyStores",
@@ -325,20 +471,30 @@
             "name": "lat",
             "in": "query",
             "required": true,
-            "schema": {"type": "number", "format": "double"}
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
           },
           {
             "name": "lng",
             "in": "query",
             "required": true,
-            "schema": {"type": "number", "format": "double"}
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
           },
           {
             "name": "radius",
             "in": "query",
             "required": false,
             "description": "Search radius in metres. Defaults to 5000.",
-            "schema": {"type": "number", "format": "double", "default": 5000}
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5000
+            }
           }
         ],
         "responses": {
@@ -348,23 +504,35 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {"$ref": "#/components/schemas/PublicStore"}
+                  "items": {
+                    "$ref": "#/components/schemas/PublicStore"
+                  }
                 }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/public/locker-bookings/options": {
       "get": {
-        "tags": ["Public bookings"],
+        "tags": [
+          "Public bookings"
+        ],
         "summary": "List public booking options",
         "description": "Returns locker spaces for the browser checkout widget.",
         "operationId": "listPublicBookingOptions",
-        "security": [{"publishableKey": []}],
+        "security": [
+          {
+            "publishableKey": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Available spaces.",
@@ -372,28 +540,42 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {"$ref": "#/components/schemas/LockerSpace"}
+                  "items": {
+                    "$ref": "#/components/schemas/LockerSpace"
+                  }
                 }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/api/public/locker-bookings": {
       "post": {
-        "tags": ["Public bookings"],
+        "tags": [
+          "Public bookings"
+        ],
         "summary": "Create a public locker booking",
         "description": "Creates the locker booking used by the checkout widget.",
         "operationId": "createPublicLockerBooking",
-        "security": [{"publishableKey": []}],
+        "security": [
+          {
+            "publishableKey": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"$ref": "#/components/schemas/CreatePublicBookingRequest"}
+              "schema": {
+                "$ref": "#/components/schemas/CreatePublicBookingRequest"
+              }
             }
           }
         },
@@ -405,32 +587,55 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "token": {"type": "string"},
-                    "confirmation_url": {"type": "string", "example": "/b/public-token"}
+                    "token": {
+                      "type": "string"
+                    },
+                    "confirmation_url": {
+                      "type": "string",
+                      "example": "/b/public-token"
+                    }
                   },
-                  "required": ["token", "confirmation_url"]
+                  "required": [
+                    "token",
+                    "confirmation_url"
+                  ]
                 }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/integrations/shopify/carrier-rates": {
       "post": {
-        "tags": ["Shopify"],
+        "tags": [
+          "Shopify"
+        ],
         "summary": "Get Shopify carrier rates",
         "description": "Shopify calls this endpoint to request an UrbnBox shipping rate. UrbnBox validates the Shopify HMAC signature.",
         "operationId": "shopifyCarrierRates",
-        "security": [{"shopifyHmac": []}],
+        "security": [
+          {
+            "shopifyHmac": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"type": "object", "additionalProperties": true}
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
             }
           }
         },
@@ -444,40 +649,62 @@
                   "properties": {
                     "rates": {
                       "type": "array",
-                      "items": {"$ref": "#/components/schemas/ShopifyRate"}
+                      "items": {
+                        "$ref": "#/components/schemas/ShopifyRate"
+                      }
                     }
                   },
-                  "required": ["rates"]
+                  "required": [
+                    "rates"
+                  ]
                 }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
         }
       }
     },
     "/integrations/shopify/fulfillment": {
       "post": {
-        "tags": ["Shopify"],
+        "tags": [
+          "Shopify"
+        ],
         "summary": "Process a Shopify fulfillment",
         "description": "Creates a shipment for a recognized Shopify store when lockers are available.",
         "operationId": "shopifyFulfillment",
-        "security": [{"shopifyHmac": []}],
+        "security": [
+          {
+            "shopifyHmac": []
+          }
+        ],
         "parameters": [
           {
             "name": "X-Shopify-Shop-Domain",
             "in": "header",
             "required": true,
-            "schema": {"type": "string", "example": "example-store.myshopify.com"}
+            "schema": {
+              "type": "string",
+              "example": "example-store.myshopify.com"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"type": "object", "additionalProperties": true}
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
             }
           }
         },
@@ -489,21 +716,582 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "shipment_id": {"type": "string"},
-                    "tracking_url": {"type": "string", "format": "uri"}
+                    "shipment_id": {
+                      "type": "string"
+                    },
+                    "tracking_url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
                   }
                 }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "500": {"$ref": "#/components/responses/ServerError"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/api/vendor/v1/orders": {
+      "get": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "List orders",
+        "description": "Returns a paginated list of orders for the authenticated vendor.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by order status"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated order list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedOrders"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "Create order",
+        "description": "Creates a new order. Idempotent on external_reference \u2014 returns the existing order if already created.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing order returned (idempotent match on external_reference)"
+          },
+          "201": {
+            "description": "Order created"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/vendor/v1/shipments": {
+      "get": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "List shipments",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated shipment list"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "Create shipment",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Shipment created"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/vendor/v1/orders/csv-template": {
+      "get": {
+        "tags": ["Vendor API"],
+        "summary": "Download orders CSV template",
+        "description": "Returns `urbnbox-orders-template.csv` — a pre-formatted CSV with correct headers and two example rows. No authentication required. Fill it in, then POST to `/api/vendor/v1/orders/import-csv`.\n\n**Column order (do not change):**\n\n| # | Column | Required | Notes |\n|---|--------|----------|-------|\n| 1 | `external_reference` | Yes | Your order ID — used for idempotency |\n| 2 | `client_name` | Yes | Recipient full name |\n| 3 | `client_phone` | Yes | Kenyan number (`07xx` or `+254xx`) |\n| 4 | `description` | Yes | Item description |\n| 5 | `quantity` | Yes | Positive integer |\n| 6 | `unit_price_kes` | Yes | Price in KES, e.g. `1500` |\n| 7 | `pickup_type` | Yes | `delivery` or `locker` |\n\n**Example file contents:**\n\n```csv\nexternal_reference,client_name,client_phone,description,quantity,unit_price_kes,pickup_type\nORD-001,Jane Doe,0712345678,Blue hoodie size M,2,1500,delivery\nORD-002,John Smith,0798765432,Running shoes size 42,1,4500,locker\n```",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -O -J https://api.urbnbox.com/api/vendor/v1/orders/csv-template"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "import requests\n\nresp = requests.get('https://api.urbnbox.com/api/vendor/v1/orders/csv-template')\nwith open('urbnbox-orders-template.csv', 'wb') as f:\n    f.write(resp.content)\nprint('Template saved.')"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js",
+            "source": "const fs = require('fs');\nconst https = require('https');\n\nhttps.get('https://api.urbnbox.com/api/vendor/v1/orders/csv-template', (res) => {\n  res.pipe(fs.createWriteStream('urbnbox-orders-template.csv'));\n  res.on('end', () => console.log('Template saved.'));\n});"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV template file — save and open in Excel or Google Sheets",
+            "content": {
+              "text/csv": {
+                "schema": {"type": "string"},
+                "example": "external_reference,client_name,client_phone,description,quantity,unit_price_kes,pickup_type\nORD-001,Jane Doe,0712345678,Blue hoodie size M,2,1500,delivery\nORD-002,John Smith,0798765432,Running shoes size 42,1,4500,locker"
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "schema": {"type": "string"},
+                "example": "attachment; filename=\"urbnbox-orders-template.csv\""
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vendor/v1/orders/import-csv": {
+      "post": {
+        "tags": ["Vendor API"],
+        "summary": "Bulk import orders via CSV",
+        "description": "Upload a CSV file to validate and preview order creation. Returns a row-by-row result — valid rows and any errors. Use `/api/vendor/v1/orders/csv-template` to download the correct format first.\n\n**Note:** This endpoint validates and returns results; it does not create orders automatically. Use the JSON `/api/vendor/v1/orders/bulk` endpoint to actually create orders, or use the vendor dashboard UI for a guided import flow.",
+        "security": [{"ApiKeyAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {"type": "string", "format": "binary", "description": "CSV file. First row must be the header row."}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation result with per-row status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid_count": {"type": "integer", "description": "Number of rows that passed validation"},
+                    "error_count": {"type": "integer", "description": "Number of rows with errors"},
+                    "total_count": {"type": "integer"},
+                    "rows": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "row_num": {"type": "integer"},
+                          "external_reference": {"type": "string"},
+                          "client_name": {"type": "string"},
+                          "client_phone": {"type": "string"},
+                          "description": {"type": "string"},
+                          "quantity": {"type": "integer"},
+                          "unit_price_cents": {"type": "integer"},
+                          "pickup_type": {"type": "string"},
+                          "error": {"type": "string", "description": "Only present if this row failed validation"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/api/vendor/v1/shipments/csv-template": {
+      "get": {
+        "tags": ["Vendor API"],
+        "summary": "Download shipments CSV template",
+        "description": "Returns `urbnbox-shipments-template.csv` — a pre-formatted CSV with correct headers and two example rows. No authentication required. Fill it in, then POST to `/api/vendor/v1/shipments/import-csv`.\n\n**Column order (do not change):**\n\n| # | Column | Required | Notes |\n|---|--------|----------|-------|\n| 1 | `external_reference` | Yes | Your shipment ID — used for idempotency |\n| 2 | `recipient_name` | Yes | Full name of recipient |\n| 3 | `recipient_phone` | Yes | Kenyan number (`07xx` or `+254xx`) |\n| 4 | `origin_city` | Yes | e.g. `Nairobi` |\n| 5 | `destination_city` | Yes | e.g. `Mombasa` |\n| 6 | `weight_tier` | Yes | `small`, `medium`, or `large` |\n\n**Weight tiers:** `small` = up to 5 kg · `medium` = 5–15 kg · `large` = 15–30 kg\n\n**Example file contents:**\n\n```csv\nexternal_reference,recipient_name,recipient_phone,origin_city,destination_city,weight_tier\nSHIP-001,Alice Mwangi,0712345678,Nairobi,Mombasa,small\nSHIP-002,Bob Otieno,0798765432,Kisumu,Nairobi,medium\n```",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -O -J https://api.urbnbox.com/api/vendor/v1/shipments/csv-template"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "import requests\n\nresp = requests.get('https://api.urbnbox.com/api/vendor/v1/shipments/csv-template')\nwith open('urbnbox-shipments-template.csv', 'wb') as f:\n    f.write(resp.content)\nprint('Template saved.')"
+          },
+          {
+            "lang": "JavaScript",
+            "label": "Node.js",
+            "source": "const fs = require('fs');\nconst https = require('https');\n\nhttps.get('https://api.urbnbox.com/api/vendor/v1/shipments/csv-template', (res) => {\n  res.pipe(fs.createWriteStream('urbnbox-shipments-template.csv'));\n  res.on('end', () => console.log('Template saved.'));\n});"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV template file — save and open in Excel or Google Sheets",
+            "content": {
+              "text/csv": {
+                "schema": {"type": "string"},
+                "example": "external_reference,recipient_name,recipient_phone,origin_city,destination_city,weight_tier\nSHIP-001,Alice Mwangi,0712345678,Nairobi,Mombasa,small\nSHIP-002,Bob Otieno,0798765432,Kisumu,Nairobi,medium"
+              }
+            },
+            "headers": {
+              "Content-Disposition": {
+                "schema": {"type": "string"},
+                "example": "attachment; filename=\"urbnbox-shipments-template.csv\""
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vendor/v1/shipments/import-csv": {
+      "post": {
+        "tags": ["Vendor API"],
+        "summary": "Bulk import shipments via CSV",
+        "description": "Upload a CSV file to validate shipment rows. Returns per-row results. Use `/api/vendor/v1/shipments/csv-template` to download the correct format first.",
+        "security": [{"ApiKeyAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {"type": "string", "format": "binary"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation result with per-row status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid_count": {"type": "integer"},
+                    "error_count": {"type": "integer"},
+                    "total_count": {"type": "integer"},
+                    "rows": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "row": {"type": "integer"},
+                          "external_reference": {"type": "string"},
+                          "recipient_name": {"type": "string"},
+                          "recipient_phone": {"type": "string"},
+                          "origin_city": {"type": "string"},
+                          "destination_city": {"type": "string"},
+                          "weight_tier": {"type": "string"},
+                          "error": {"type": "string"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/api/vendor/v1/webhooks": {
+      "get": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "List webhooks",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of configured webhooks"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "Create webhook",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url",
+                  "events"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook created"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/vendor/v1/webhooks/{id}": {
+      "delete": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "Delete webhook",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Webhook deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/vendor/v1/earnings": {
+      "get": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "Get earnings summary",
+        "description": "Returns the authenticated vendor's ledger balance and recent payout history.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Earnings summary"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/vendor/v1/shipment-quote": {
+      "post": {
+        "tags": [
+          "Vendor API"
+        ],
+        "summary": "Get a shipment quote",
+        "description": "Returns a price quote for a shipment without creating it.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "origin_city",
+                  "destination_city"
+                ],
+                "properties": {
+                  "origin_city": {
+                    "type": "string"
+                  },
+                  "destination_city": {
+                    "type": "string"
+                  },
+                  "weight_tier": {
+                    "type": "string",
+                    "enum": [
+                      "light",
+                      "medium",
+                      "heavy"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote result"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     }
   },
   "components": {
     "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Vendor API key. Keys with prefix ubx_test_ or ubx_live_ identify vendor accounts."
+      },
       "partnerKey": {
         "type": "apiKey",
         "in": "header",
@@ -527,30 +1315,72 @@
       "ShipmentQuoteRequest": {
         "type": "object",
         "properties": {
-          "destination_city": {"type": "string", "example": "Mombasa"},
+          "destination_city": {
+            "type": "string",
+            "example": "Mombasa"
+          },
           "weight_tier": {
             "type": "string",
-            "enum": ["light", "medium", "heavy"]
+            "enum": [
+              "light",
+              "medium",
+              "heavy"
+            ]
           },
-          "starts_at": {"type": "string", "format": "date"},
-          "ends_at": {"type": "string", "format": "date"}
+          "starts_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date"
+          }
         },
-        "required": ["destination_city", "weight_tier", "starts_at", "ends_at"]
+        "required": [
+          "destination_city",
+          "weight_tier",
+          "starts_at",
+          "ends_at"
+        ]
       },
       "CreateShipmentRequest": {
         "type": "object",
         "properties": {
-          "external_reference": {"type": "string", "description": "Your order or fulfillment ID."},
-          "recipient_name": {"type": "string"},
-          "recipient_phone": {"type": "string", "example": "+254712345678"},
-          "origin_city": {"type": "string", "example": "Nairobi"},
-          "destination_city": {"type": "string", "example": "Mombasa"},
+          "external_reference": {
+            "type": "string",
+            "description": "Your order or fulfillment ID."
+          },
+          "recipient_name": {
+            "type": "string"
+          },
+          "recipient_phone": {
+            "type": "string",
+            "example": "+254712345678"
+          },
+          "origin_city": {
+            "type": "string",
+            "example": "Nairobi"
+          },
+          "destination_city": {
+            "type": "string",
+            "example": "Mombasa"
+          },
           "weight_tier": {
             "type": "string",
-            "enum": ["light", "medium", "heavy"]
+            "enum": [
+              "light",
+              "medium",
+              "heavy"
+            ]
           },
-          "starts_at": {"type": "string", "format": "date"},
-          "ends_at": {"type": "string", "format": "date"}
+          "starts_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date"
+          }
         },
         "required": [
           "external_reference",
@@ -566,43 +1396,104 @@
       "CreateCheckoutSessionRequest": {
         "type": "object",
         "properties": {
-          "external_order_id": {"type": "string"},
-          "space_id": {"type": "string"},
-          "client_name": {"type": "string"},
-          "phone": {"type": "string"},
-          "starts_at": {"type": "string", "format": "date"},
-          "ends_at": {"type": "string", "format": "date"},
-          "amount_cents": {"type": "integer", "format": "int64", "minimum": 0}
+          "external_order_id": {
+            "type": "string"
+          },
+          "space_id": {
+            "type": "string"
+          },
+          "client_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
         }
       },
       "CreatePublicBookingRequest": {
         "type": "object",
         "properties": {
-          "space_id": {"type": "string"},
-          "client_name": {"type": "string"},
-          "phone": {"type": "string"},
-          "starts_at": {"type": "string", "format": "date"},
-          "ends_at": {"type": "string", "format": "date"}
+          "space_id": {
+            "type": "string"
+          },
+          "client_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date"
+          }
         },
-        "required": ["space_id", "client_name", "phone", "starts_at", "ends_at"]
+        "required": [
+          "space_id",
+          "client_name",
+          "phone",
+          "starts_at",
+          "ends_at"
+        ]
       },
       "Locker": {
         "type": "object",
         "properties": {
-          "name": {"type": "string"},
-          "city": {"type": "string"},
-          "address": {"type": "string"}
+          "name": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
         },
-        "required": ["name", "city", "address"]
+        "required": [
+          "name",
+          "city",
+          "address"
+        ]
       },
       "FeeBreakdown": {
         "type": "object",
         "properties": {
-          "origin_locker_fee_cents": {"type": "integer", "format": "int64"},
-          "destination_locker_fee_cents": {"type": "integer", "format": "int64"},
-          "transit_rider_fee_cents": {"type": "integer", "format": "int64"},
-          "platform_fee_cents": {"type": "integer", "format": "int64"},
-          "total_cents": {"type": "integer", "format": "int64"}
+          "origin_locker_fee_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "destination_locker_fee_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "transit_rider_fee_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "platform_fee_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_cents": {
+            "type": "integer",
+            "format": "int64"
+          }
         },
         "required": [
           "origin_locker_fee_cents",
@@ -614,11 +1505,23 @@
       "ShipmentQuote": {
         "type": "object",
         "properties": {
-          "available": {"type": "boolean", "const": true},
-          "origin_locker": {"$ref": "#/components/schemas/Locker"},
-          "destination_locker": {"$ref": "#/components/schemas/Locker"},
-          "total_cents": {"type": "integer", "format": "int64"},
-          "fee_breakdown": {"$ref": "#/components/schemas/FeeBreakdown"}
+          "available": {
+            "type": "boolean",
+            "const": true
+          },
+          "origin_locker": {
+            "$ref": "#/components/schemas/Locker"
+          },
+          "destination_locker": {
+            "$ref": "#/components/schemas/Locker"
+          },
+          "total_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fee_breakdown": {
+            "$ref": "#/components/schemas/FeeBreakdown"
+          }
         },
         "required": [
           "available",
@@ -630,7 +1533,9 @@
       },
       "CreatedShipment": {
         "allOf": [
-          {"$ref": "#/components/schemas/Shipment"},
+          {
+            "$ref": "#/components/schemas/Shipment"
+          },
           {
             "type": "object",
             "properties": {
@@ -639,8 +1544,14 @@
                 "pattern": "^[0-9]{6}$",
                 "description": "One-time deposit PIN. Store it when creating the shipment."
               },
-              "deposit_whatsapp_link": {"type": "string", "format": "uri"},
-              "collection_whatsapp_link": {"type": "string", "format": "uri"}
+              "deposit_whatsapp_link": {
+                "type": "string",
+                "format": "uri"
+              },
+              "collection_whatsapp_link": {
+                "type": "string",
+                "format": "uri"
+              }
             },
             "required": [
               "deposit_pin",
@@ -653,13 +1564,28 @@
       "Shipment": {
         "type": "object",
         "properties": {
-          "id": {"type": "string"},
-          "tracking_token": {"type": "string"},
-          "tracking_url": {"type": "string", "format": "uri"},
-          "status": {"type": "string"},
-          "origin_locker": {"$ref": "#/components/schemas/Locker"},
-          "destination_locker": {"$ref": "#/components/schemas/Locker"},
-          "fee_breakdown": {"$ref": "#/components/schemas/FeeBreakdown"}
+          "id": {
+            "type": "string"
+          },
+          "tracking_token": {
+            "type": "string"
+          },
+          "tracking_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "status": {
+            "type": "string"
+          },
+          "origin_locker": {
+            "$ref": "#/components/schemas/Locker"
+          },
+          "destination_locker": {
+            "$ref": "#/components/schemas/Locker"
+          },
+          "fee_breakdown": {
+            "$ref": "#/components/schemas/FeeBreakdown"
+          }
         },
         "required": [
           "id",
@@ -674,53 +1600,177 @@
       "CheckoutSession": {
         "type": "object",
         "properties": {
-          "ID": {"type": "string"},
-          "PartnerID": {"type": "string"},
-          "ExternalOrderID": {"type": ["string", "null"]},
-          "SpaceID": {"type": ["string", "null"]},
-          "ClientName": {"type": ["string", "null"]},
-          "Phone": {"type": ["string", "null"]},
-          "StartsAt": {"type": ["string", "null"], "format": "date-time"},
-          "EndsAt": {"type": ["string", "null"], "format": "date-time"},
-          "AmountCents": {"type": ["integer", "null"], "format": "int64"},
-          "Status": {"type": "string"},
-          "IdempotencyKey": {"type": ["string", "null"]},
-          "CreatedAt": {"type": "string", "format": "date-time"},
-          "UpdatedAt": {"type": "string", "format": "date-time"},
-          "ExpiresAt": {"type": "string", "format": "date-time"}
+          "ID": {
+            "type": "string"
+          },
+          "PartnerID": {
+            "type": "string"
+          },
+          "ExternalOrderID": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "SpaceID": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ClientName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "Phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "StartsAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "EndsAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "AmountCents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "Status": {
+            "type": "string"
+          },
+          "IdempotencyKey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "required": ["ID", "PartnerID", "Status", "CreatedAt", "UpdatedAt", "ExpiresAt"]
+        "required": [
+          "ID",
+          "PartnerID",
+          "Status",
+          "CreatedAt",
+          "UpdatedAt",
+          "ExpiresAt"
+        ]
       },
       "LockerSpace": {
         "type": "object",
         "description": "The current Go API serializes this model with exported field names.",
         "properties": {
-          "ID": {"type": "string"},
-          "StoreID": {"type": "string"},
-          "StoreName": {"type": "string"},
-          "StoreLatitude": {"type": ["number", "null"]},
-          "StoreLongitude": {"type": ["number", "null"]},
-          "Type": {"type": "string"},
-          "Code": {"type": "string"},
-          "DailyRate": {"type": "integer", "format": "int64"},
-          "HourlyRate": {"type": "integer", "format": "int64"},
-          "IsActive": {"type": "boolean"}
+          "ID": {
+            "type": "string"
+          },
+          "StoreID": {
+            "type": "string"
+          },
+          "StoreName": {
+            "type": "string"
+          },
+          "StoreLatitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "StoreLongitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "Type": {
+            "type": "string"
+          },
+          "Code": {
+            "type": "string"
+          },
+          "DailyRate": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "HourlyRate": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "IsActive": {
+            "type": "boolean"
+          }
         },
-        "required": ["ID", "StoreID", "StoreName", "Type", "Code", "DailyRate", "HourlyRate", "IsActive"]
+        "required": [
+          "ID",
+          "StoreID",
+          "StoreName",
+          "Type",
+          "Code",
+          "DailyRate",
+          "HourlyRate",
+          "IsActive"
+        ]
       },
       "PublicStore": {
         "type": "object",
         "properties": {
-          "id": {"type": "string"},
-          "name": {"type": "string"},
-          "address": {"type": "string"},
-          "lat": {"type": "number", "format": "double"},
-          "lng": {"type": "number", "format": "double"},
-          "locker_count": {"type": "integer"},
-          "available_lockers": {"type": "integer"},
-          "shelf_count": {"type": "integer"},
-          "has_lockers": {"type": "boolean"},
-          "has_shelves": {"type": "boolean"}
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          },
+          "locker_count": {
+            "type": "integer"
+          },
+          "available_lockers": {
+            "type": "integer"
+          },
+          "shelf_count": {
+            "type": "integer"
+          },
+          "has_lockers": {
+            "type": "boolean"
+          },
+          "has_shelves": {
+            "type": "boolean"
+          }
         },
         "required": [
           "id",
@@ -738,13 +1788,33 @@
       "ShopifyRate": {
         "type": "object",
         "properties": {
-          "service_name": {"type": "string", "example": "UrbnBox Locker Pickup"},
-          "service_code": {"type": "string", "const": "urbnbox_locker"},
-          "total_price": {"type": "string", "description": "KES minor units."},
-          "currency": {"type": "string", "const": "KES"},
-          "min_delivery_date": {"type": "string", "format": "date-time"},
-          "max_delivery_date": {"type": "string", "format": "date-time"},
-          "description": {"type": "string"}
+          "service_name": {
+            "type": "string",
+            "example": "UrbnBox Locker Pickup"
+          },
+          "service_code": {
+            "type": "string",
+            "const": "urbnbox_locker"
+          },
+          "total_price": {
+            "type": "string",
+            "description": "KES minor units."
+          },
+          "currency": {
+            "type": "string",
+            "const": "KES"
+          },
+          "min_delivery_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "max_delivery_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string"
+          }
         },
         "required": [
           "service_name",
@@ -759,32 +1829,159 @@
       "JSONError": {
         "type": "object",
         "properties": {
-          "error": {"type": "string"},
-          "message": {"type": "string"}
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["error", "message"]
+        "required": [
+          "error",
+          "message"
+        ]
+      },
+      "PaginatedOrders": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VendorOrder"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          }
+        }
+      },
+      "CreateOrderInput": {
+        "type": "object",
+        "required": [
+          "client_name",
+          "client_phone",
+          "description"
+        ],
+        "properties": {
+          "external_reference": {
+            "type": "string",
+            "description": "Your order ID for idempotency"
+          },
+          "client_name": {
+            "type": "string"
+          },
+          "client_phone": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "default": 1
+          },
+          "unit_price_kes": {
+            "type": "number"
+          },
+          "pickup_type": {
+            "type": "string",
+            "enum": [
+              "locker",
+              "delivery"
+            ]
+          },
+          "is_cod": {
+            "type": "boolean"
+          },
+          "cod_amount_kes": {
+            "type": "number"
+          }
+        }
+      },
+      "VendorOrder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "external_reference": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "client_name": {
+            "type": "string"
+          },
+          "is_cod": {
+            "type": "boolean"
+          },
+          "cod_amount_kes": {
+            "type": "number"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     },
     "responses": {
       "BadRequest": {
         "description": "The request body, date, field, or query parameter is invalid.",
-        "content": {"text/plain": {"schema": {"type": "string"}}}
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
       },
       "Unauthorized": {
         "description": "The credential is missing, invalid, or inactive.",
-        "content": {"text/plain": {"schema": {"type": "string"}}}
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
       },
       "Forbidden": {
         "description": "The credential is not authorized for this operation.",
-        "content": {"text/plain": {"schema": {"type": "string"}}}
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
       },
       "NotFound": {
         "description": "The resource does not exist for the authenticated partner.",
-        "content": {"text/plain": {"schema": {"type": "string"}}}
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
       },
       "ServerError": {
         "description": "UrbnBox could not complete the request.",
-        "content": {"text/plain": {"schema": {"type": "string"}}}
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
       }
     }
   }

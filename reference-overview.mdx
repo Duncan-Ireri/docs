@@ -12,20 +12,26 @@ https://portal.urbnbox.io
 
 ## Endpoint groups
 
-| Group | Authentication | Purpose |
-| --- | --- | --- |
-| Partner API | `X-API-Key` | Quotes, shipments, availability, and checkout sessions |
-| Public booking API | Publishable `X-API-Key` where noted | Browser widget bookings |
-| Store discovery | None | Active store and nearby-store lookup |
-| Shopify callbacks | Shopify HMAC | Carrier rates and fulfillment |
+| Group | Authentication | Who uses it | Purpose |
+| --- | --- | --- | --- |
+| Partner API | `X-API-Key` (`ubx_live_…`) | Partners | Quotes, shipments, availability, and checkout sessions |
+| Vendor API | `X-API-Key` (`ubx_live_…`) | Vendors | Orders, shipments, earnings, webhooks |
+| Public booking API | Publishable key (`ubp_live_…`) | Browser widgets | Locker selection and booking |
+| Store discovery | None | Anyone | Active store and nearby-store lookup |
+| Shopify callbacks | Shopify HMAC | Shopify (signed by Shopify) | Carrier rates and fulfillment |
+
+<Note>
+  Not sure whether you need the Partner API or Vendor API? See [Partners and
+  vendors](/concepts/partners-and-vendors).
+</Note>
 
 ## Request conventions
 
 Send JSON bodies with `Content-Type: application/json`. Dates use `YYYY-MM-DD`.
 Money fields ending in `_cents` contain KES minor units.
 
-The partner API is versioned under `/api/partner/v1`. Public booking routes are
-not versioned.
+The Partner API is versioned under `/api/partner/v1`. The Vendor API is
+versioned under `/api/vendor/v1`. Public booking routes are not versioned.
 
 ## Errors
 

@@ -1,0 +1,68 @@
+---
+title: "Webhooks"
+description: "Receive real-time event notifications for order and shipment state changes."
+---
+
+## Overview
+
+Configure a webhook endpoint to receive HTTP POST notifications when orders and
+shipments transition through key lifecycle states. UrbnBox signs every delivery
+with an HMAC-SHA256 signature so you can verify authenticity before processing.
+
+## Configure a webhook
+
+`POST /api/vendor/v1/webhooks`
+
+```json
+{
+  "url": "https://your-backend.example.com/urbnbox/events",
+  "events": ["order.confirmed", "order.delivered", "shipment.collected"]
+}
+```
+
+The response includes a `secret` field. Store this value securely — it is shown
+only once and is used to verify the HMAC signature on incoming events.
+
+## Available events
+
+| Event | Fired when |
+| --- | --- |
+| `order.confirmed` | A client confirms an order on the public page |
+| `order.assigned` | An admin assigns a rider to the order |
+| `order.dispatched` | The order is marked as dispatched |
+| `order.delivered` | The order is marked as delivered |
+| `order.cancelled` | The order is cancelled at any stage |
+| `shipment.deposited` | Sender deposits the parcel at the origin locker |
+| `shipment.in_transit` | Rider picks up the parcel from the origin locker |
+| `shipment.arrived` | Parcel arrives at the destination locker |
+| `shipment.collected` | Recipient collects the parcel |
+
+## Verifying the signature
+
+Each delivery includes an `X-UrbnBox-Signature` header containing a
+HMAC-SHA256 hex digest of the raw request body, keyed with your webhook secret.
+
+```python
+import hmac, hashlib
+
+def verify(secret: str, payload: bytes, signature: str) -> bool:
+    expected = hmac.new(
+        secret.encode(), payload, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+Reject any delivery where the signature does not match. Never process an event
+before verifying its signature.
+
+## Retry policy
+
+UrbnBox retries failed deliveries (non-2xx or timeout) with exponential backoff
+up to 5 attempts over 24 hours. Respond with HTTP 200 as quickly as possible —
+queue heavy processing for a background job.
+
+## List and delete webhooks
+
+`GET /api/vendor/v1/webhooks` — returns all configured webhooks for the vendor.
+
+`DELETE /api/vendor/v1/webhooks/{id}` — removes a webhook endpoint.

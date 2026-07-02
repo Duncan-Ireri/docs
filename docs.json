@@ -33,6 +33,7 @@
           {
             "group": "Concepts",
             "pages": [
+              "concepts/partners-and-vendors",
               "concepts/authentication"
             ]
           }
@@ -70,6 +71,27 @@
             "pages": [
               "POST /integrations/shopify/carrier-rates",
               "POST /integrations/shopify/fulfillment"
+            ]
+          },
+          {
+            "group": "Vendor API",
+            "pages": [
+              "api-reference/vendor/orders",
+              "api-reference/vendor/shipments",
+              "api-reference/vendor/webhooks",
+              "GET /api/vendor/v1/orders",
+              "POST /api/vendor/v1/orders",
+              "GET /api/vendor/v1/orders/csv-template",
+              "POST /api/vendor/v1/orders/import-csv",
+              "GET /api/vendor/v1/shipments",
+              "POST /api/vendor/v1/shipments",
+              "GET /api/vendor/v1/shipments/csv-template",
+              "POST /api/vendor/v1/shipments/import-csv",
+              "GET /api/vendor/v1/webhooks",
+              "POST /api/vendor/v1/webhooks",
+              "DELETE /api/vendor/v1/webhooks/{id}",
+              "GET /api/vendor/v1/earnings",
+              "POST /api/vendor/v1/shipment-quote"
             ]
           }
         ]

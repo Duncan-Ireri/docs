@@ -1,0 +1,103 @@
+---
+title: "Shipments"
+description: "Create and track locker-to-locker shipments via the Vendor API."
+---
+
+## Overview
+
+Shipments are locker-to-locker parcel transfers. A shipment generates two PINs:
+a **deposit PIN** (for the sender at the origin locker) and a **collection PIN**
+(for the recipient at the destination locker). Both are sent via WhatsApp
+automatically on creation.
+
+All endpoints require `X-API-Key`.
+
+## List shipments
+
+`GET /api/vendor/v1/shipments`
+
+| Parameter | Type | Description |
+|---|---|---|
+| `status` | string | `pending_payment`, `paid`, `deposited`, `in_transit`, `at_destination`, `collected`, `cancelled` |
+| `page` | integer | Default: 1 |
+| `page_size` | integer | Default: 25 |
+
+## Get shipment
+
+`GET /api/vendor/v1/shipments/{id}`
+
+## Bulk import via CSV
+
+### Step 1 — Download the template
+
+`GET /api/vendor/v1/shipments/csv-template`
+
+Returns `urbnbox-shipments-template.csv`. No authentication required.
+
+**Column order:**
+
+| # | Column | Required | Notes |
+|---|--------|----------|-------|
+| 1 | `external_reference` | Yes | Your shipment ID — used for idempotency |
+| 2 | `recipient_name` | Yes | Full name of recipient |
+| 3 | `recipient_phone` | Yes | Kenyan number (`07xx` or `+254xx`) |
+| 4 | `origin_city` | Yes | e.g. `Nairobi` |
+| 5 | `destination_city` | Yes | e.g. `Mombasa` |
+| 6 | `weight_tier` | Yes | `light`, `medium`, or `heavy` |
+
+Example:
+```csv
+external_reference,recipient_name,recipient_phone,origin_city,destination_city,weight_tier
+SHIP-001,Alice Mwangi,0712345678,Nairobi,Mombasa,light
+SHIP-002,Bob Otieno,0798765432,Kisumu,Nairobi,medium
+```
+
+### Step 2 — Upload for validation
+
+`POST /api/vendor/v1/shipments/import-csv`
+
+Validates every row and returns per-row results. Does not create shipments
+automatically — review errors, then re-upload or use
+`/api/vendor/v1/shipments/bulk` to commit.
+
+```json
+{
+  "valid_count": 23,
+  "error_count": 1,
+  "total_count": 24,
+  "rows": [
+    {
+      "row": 1,
+      "external_reference": "SHIP-001",
+      "recipient_name": "Alice Mwangi",
+      "recipient_phone": "0712345678",
+      "origin_city": "Nairobi",
+      "destination_city": "Mombasa",
+      "weight_tier": "small"
+    },
+    {
+      "row": 7,
+      "external_reference": "SHIP-007",
+      "error": "all fields required"
+    }
+  ]
+}
+```
+
+## Weight tiers
+
+| Tier | Max weight |
+|------|-----------|
+| `light` | up to 5 kg |
+| `medium` | 5–15 kg |
+| `heavy` | 15–30 kg |
+
+## Shipment status flow
+
+```
+pending_payment → paid → deposited → in_transit → at_destination → collected
+                                                                  ↘ cancelled
+```
+
+WhatsApp notifications are sent automatically at `paid` (deposit instructions
+to sender) and at `at_destination` (collection instructions to recipient).

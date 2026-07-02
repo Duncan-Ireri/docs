@@ -1,0 +1,116 @@
+---
+title: "Orders"
+description: "Create and manage orders via the Vendor API."
+---
+
+## Authentication
+
+All Vendor API endpoints require an `X-API-Key` header with a vendor-scoped key.
+Keys begin with `ubx_test_` (test mode) or `ubx_live_` (production).
+
+```http
+X-API-Key: ubx_test_your_vendor_key
+```
+
+## List orders
+
+`GET /api/vendor/v1/orders`
+
+Returns a paginated list of orders for the authenticated vendor. Supports
+filtering by status and date range.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `status` | string | Filter by order status (`draft`, `confirmed`, `assigned`, `dispatched`, `delivered`, `cancelled`) |
+| `page` | integer | Page number (default: 1) |
+| `page_size` | integer | Results per page (default: 25, max: 100) |
+
+## Create order
+
+`POST /api/vendor/v1/orders`
+
+Creates a new delivery order. The endpoint is idempotent on `external_reference`
+— if an order with the same reference already exists it is returned with HTTP 200
+instead of creating a duplicate.
+
+```json
+{
+  "external_reference": "SHOP-ORDER-1001",
+  "client_name": "Jane Mwangi",
+  "client_phone": "+254712345678",
+  "description": "2x T-shirts, size L",
+  "quantity": 2,
+  "unit_price_kes": 1500,
+  "pickup_type": "delivery",
+  "is_cod": false
+}
+```
+
+### COD orders
+
+Set `is_cod: true` and provide `cod_amount_kes` to mark the order as
+cash-on-delivery. The rider dashboard will display a COD badge with the
+collection amount.
+
+## Bulk import via CSV
+
+### Step 1 — Download the template
+
+`GET /api/vendor/v1/orders/csv-template`
+
+Returns `urbnbox-orders-template.csv` with the correct headers and two example
+rows. No authentication required.
+
+**Column order:**
+
+| # | Column | Required | Notes |
+|---|--------|----------|-------|
+| 1 | `external_reference` | Yes | Your order ID — used for idempotency |
+| 2 | `client_name` | Yes | Recipient full name |
+| 3 | `client_phone` | Yes | Kenyan number (`07xx` or `+254xx`) |
+| 4 | `description` | Yes | Item description |
+| 5 | `quantity` | Yes | Positive integer |
+| 6 | `unit_price_kes` | Yes | Price in KES, e.g. `1500` |
+| 7 | `pickup_type` | Yes | `delivery` or `locker` |
+
+Example:
+```csv
+external_reference,client_name,client_phone,description,quantity,unit_price_kes,pickup_type
+ORD-001,Jane Doe,0712345678,Blue hoodie size M,2,1500,delivery
+ORD-002,John Smith,0798765432,Running shoes size 42,1,4500,locker
+```
+
+### Step 2 — Upload for validation
+
+`POST /api/vendor/v1/orders/import-csv`
+
+Upload your filled CSV as `multipart/form-data` with field name `file`. The
+response validates every row and returns per-row results — it does **not**
+create orders automatically. Review the `rows` array, fix any errors, then
+re-upload or switch to the JSON `/api/vendor/v1/orders/bulk` endpoint to commit.
+
+```json
+{
+  "valid_count": 47,
+  "error_count": 2,
+  "total_count": 49,
+  "rows": [
+    {
+      "row_num": 1,
+      "external_reference": "ORD-001",
+      "client_name": "Jane Doe",
+      "client_phone": "0712345678",
+      "description": "Blue hoodie size M",
+      "quantity": 2,
+      "unit_price_cents": 150000,
+      "pickup_type": "delivery"
+    },
+    {
+      "row_num": 12,
+      "external_reference": "ORD-012",
+      "client_name": "",
+      "error": "client_name required"
+    }
+  ]
+}
+```

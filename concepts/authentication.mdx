@@ -6,7 +6,7 @@ description: "Authenticate UrbnBox server-side and browser-side API requests."
 UrbnBox accepts API keys in the `X-API-Key` header.
 
 ```http
-X-API-Key: ub_test_your_secret_key
+X-API-Key: ubx_test_your_secret_key
 ```
 
 ## Secret keys
@@ -14,7 +14,7 @@ X-API-Key: ub_test_your_secret_key
 Use a secret key for calls from your backend. Secret keys can create shipments
 and access partner-owned resources.
 
-Test secret keys begin with `ub_test_`. Live secret keys begin with `ub_live_`.
+Test secret keys begin with `ubx_test_`. Live secret keys begin with `ubx_live_`.
 
 <Warning>
   Never expose a secret key in HTML, client-side JavaScript, a mobile
@@ -25,7 +25,7 @@ Store the key in your deployment platform's secret manager or an environment
 variable.
 
 ```bash
-export URBNBOX_API_KEY="ub_test_your_secret_key"
+export URBNBOX_API_KEY="ubx_test_your_secret_key"
 ```
 
 ## Publishable keys

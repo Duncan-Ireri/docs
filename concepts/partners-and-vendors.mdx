@@ -1,0 +1,71 @@
+---
+title: "Partners and vendors"
+description: "Understand the difference between a Partner and a Vendor on the UrbnBox platform."
+---
+
+UrbnBox serves two distinct types of business accounts. Choosing the right one
+determines which API you use, how you authenticate, and what you can do.
+
+## At a glance
+
+| | Partner | Vendor |
+|---|---|---|
+| **Who they are** | External platform or store (e.g. Shopify merchant, courier broker, marketplace) | Registered UrbnBox merchant with a dashboard account |
+| **Integration model** | Machine-to-machine API only | Dashboard (browser) + optional API |
+| **Credential** | Secret API key (`ubx_live_…`) | Dashboard login (email + password) + optional API key |
+| **Creates shipments via** | `POST /api/partner/v1/shipments` | Dashboard or `POST /api/vendor/v1/shipments` |
+| **Creates orders via** | Not applicable | Dashboard or `POST /api/vendor/v1/orders` |
+| **Receives webhooks** | Yes — configure endpoint in Admin → Partners | Yes — configure at `/v/webhooks` in the dashboard |
+| **Billed** | Monthly invoice for logistics fees | Earnings settled per delivery via M-Pesa |
+| **Provisioned by** | UrbnBox Admin | UrbnBox Admin |
+
+## Partners
+
+A **partner** is an external company or developer that sends logistics requests
+to UrbnBox from their own backend system. Partners never log in to the UrbnBox
+portal. All interaction is server-to-server using a secret API key.
+
+Typical partners:
+
+- A Shopify or WooCommerce store using the UrbnBox shipping plugin
+- A marketplace that handles its own checkout and wants locker delivery
+- A courier broker routing shipments through UrbnBox lockers
+- A developer building a custom integration with the partner API
+
+Partners use the **Partner API** under `/api/partner/v1/` and authenticate
+with `X-API-Key`. API keys are managed by UrbnBox Admin and returned once at
+creation — store them in your secret manager.
+
+<Card title="Partner API quickstart" icon="arrow-right" href="/quickstart">
+  Create your first shipment as a partner.
+</Card>
+
+## Vendors
+
+A **vendor** is a merchant registered directly on the UrbnBox platform. Vendors
+have a named account, can log in to the portal at
+[portal.urbnbox.io](https://portal.urbnbox.io), and manage orders, products,
+inventory, and shipments through the dashboard.
+
+Typical vendors:
+
+- A retailer using UrbnBox as their fulfilment and delivery layer
+- A wholesaler managing bulk orders and shelf bookings
+- A small business owner creating delivery orders manually from the dashboard
+
+Vendors can optionally generate an API key (from **Integrations** in the
+dashboard) to automate order or shipment creation from their own system. Vendor
+API keys authenticate against `/api/vendor/v1/` endpoints.
+
+<Note>
+  Vendors are provisioned by UrbnBox Admin. There is no self-registration for
+  vendor accounts.
+</Note>
+
+## Which should you use?
+
+- **You run your own platform and want to programmatically hand off shipments to UrbnBox** → Partner
+- **You sell goods and want to use UrbnBox to fulfil orders, manage stock, or book shelf space** → Vendor
+- **You are building a Shopify or WooCommerce plugin** → Partner (the plugins authenticate as partners)
+
+If you are unsure, contact [support@urbnbox.io](mailto:support@urbnbox.io).
