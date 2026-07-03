@@ -12,7 +12,7 @@ determines which API you use, how you authenticate, and what you can do.
 |---|---|---|
 | **Who they are** | External platform or store (e.g. Shopify merchant, courier broker, marketplace) | Registered UrbnBox merchant with a dashboard account |
 | **Integration model** | Machine-to-machine API only | Dashboard (browser) + optional API |
-| **Credential** | Secret API key (`ubx_live_…`) | Dashboard login (email + password) + optional API key |
+| **Credential** | Secret API key (`ub_live_…`) | Dashboard login (email + password) + optional API key |
 | **Creates shipments via** | `POST /api/partner/v1/shipments` | Dashboard or `POST /api/vendor/v1/shipments` |
 | **Creates orders via** | Not applicable | Dashboard or `POST /api/vendor/v1/orders` |
 | **Receives webhooks** | Yes — configure endpoint in Admin → Partners | Yes — configure at `/v/webhooks` in the dashboard |

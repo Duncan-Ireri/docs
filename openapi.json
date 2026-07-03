@@ -1290,7 +1290,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key",
-        "description": "Vendor API key. Keys with prefix ubx_test_ or ubx_live_ identify vendor accounts."
+        "description": "Vendor API key. Keys begin with the ubx_ prefix and identify vendor accounts."
       },
       "partnerKey": {
         "type": "apiKey",

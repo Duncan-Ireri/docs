@@ -6,10 +6,10 @@ description: "Create and manage orders via the Vendor API."
 ## Authentication
 
 All Vendor API endpoints require an `X-API-Key` header with a vendor-scoped key.
-Keys begin with `ubx_test_` (test mode) or `ubx_live_` (production).
+Keys begin with the `ubx_` prefix. Create and revoke them under **Integrations** in the vendor dashboard.
 
 ```http
-X-API-Key: ubx_test_your_vendor_key
+X-API-Key: ubx_your_vendor_key
 ```
 
 ## List orders
