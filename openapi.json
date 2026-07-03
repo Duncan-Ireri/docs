@@ -989,7 +989,7 @@
                           "client_phone": {"type": "string"},
                           "description": {"type": "string"},
                           "quantity": {"type": "integer"},
-                          "unit_price_cents": {"type": "integer"},
+                          "unit_price_kes": {"type": "integer"},
                           "pickup_type": {"type": "string"},
                           "error": {"type": "string", "description": "Only present if this row failed validation"}
                         }
@@ -1416,7 +1416,7 @@
             "type": "string",
             "format": "date"
           },
-          "amount_cents": {
+          "amount_kes": {
             "type": "integer",
             "format": "int64",
             "minimum": 0
@@ -1474,32 +1474,32 @@
       "FeeBreakdown": {
         "type": "object",
         "properties": {
-          "origin_locker_fee_cents": {
+          "origin_locker_fee_kes": {
             "type": "integer",
             "format": "int64"
           },
-          "destination_locker_fee_cents": {
+          "destination_locker_fee_kes": {
             "type": "integer",
             "format": "int64"
           },
-          "transit_rider_fee_cents": {
+          "transit_rider_fee_kes": {
             "type": "integer",
             "format": "int64"
           },
-          "platform_fee_cents": {
+          "platform_fee_kes": {
             "type": "integer",
             "format": "int64"
           },
-          "total_cents": {
+          "total_kes": {
             "type": "integer",
             "format": "int64"
           }
         },
         "required": [
-          "origin_locker_fee_cents",
-          "destination_locker_fee_cents",
-          "transit_rider_fee_cents",
-          "platform_fee_cents"
+          "origin_locker_fee_kes",
+          "destination_locker_fee_kes",
+          "transit_rider_fee_kes",
+          "platform_fee_kes"
         ]
       },
       "ShipmentQuote": {
@@ -1515,7 +1515,7 @@
           "destination_locker": {
             "$ref": "#/components/schemas/Locker"
           },
-          "total_cents": {
+          "total_kes": {
             "type": "integer",
             "format": "int64"
           },
@@ -1527,7 +1527,7 @@
           "available",
           "origin_locker",
           "destination_locker",
-          "total_cents",
+          "total_kes",
           "fee_breakdown"
         ]
       },
@@ -1798,7 +1798,7 @@
           },
           "total_price": {
             "type": "string",
-            "description": "KES minor units."
+            "description": "whole KES."
           },
           "currency": {
             "type": "string",

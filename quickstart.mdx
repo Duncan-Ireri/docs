@@ -24,7 +24,7 @@ Before you begin, you need:
 
 <Steps>
   <Step title="Request a quote">
-    Confirm that lockers are available and retrieve the fee in KES minor units.
+    Confirm that lockers are available and retrieve the fee in whole KES.
 
     ```bash
     curl --request POST \
@@ -90,8 +90,8 @@ You can send `deposit_whatsapp_link` to the person who deposits the parcel. Send
 `collection_whatsapp_link` to the recipient when your fulfillment flow requires
 it.
 
-All fee values ending in `_cents` use KES minor units. For example, `85000`
-represents KES 850.00.
+All fee values ending in `_kes` are whole KES amounts. For example, `850`
+represents KES 850.
 
 ## Next steps
 
