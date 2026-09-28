@@ -1,55 +1,66 @@
 ---
 title: "Choose an integration"
-description: "Compare the UrbnBox API, checkout widget, Shopify, and WooCommerce integration paths."
+description: "Choose the lowest-friction UrbnBox integration for your commerce stack."
 ---
 
-Choose the integration based on where you can run trusted server-side code and
-how much control you need.
+Start with the integration that matches the system you already operate.
 
-| Integration | Runs in | Credential | Use it when |
+| Integration | Setup | Credential | Use it when |
 | --- | --- | --- | --- |
-| Partner API | Your backend | Secret key | You control fulfillment logic |
-| Checkout widget | Customer's browser | Publishable key | You need a locker picker with minimal code |
-| Shopify | Shopify and UrbnBox | Shopify HMAC | You need carrier rates and fulfillment automation |
-| WooCommerce | WordPress | Secret key | You need a shipping method in WooCommerce |
+| Shopify Connect | UrbnBox dashboard | Shopify OAuth | Your store runs on Shopify |
+| WooCommerce | WordPress plugin | Secret key | Your store runs on WooCommerce |
+| Partner API | Your backend | Secret key | You own a custom storefront, marketplace, OMS, or WMS |
+| Vendor API | Your backend | Vendor API key | You want order, product, inventory, pickup, return, and shipment APIs |
+| Checkout widget | Customer browser | Publishable key | You need a locker picker with minimal frontend code |
 
-## Partner API
+## Shopify
 
-The partner API gives you the most control. Your backend requests a quote,
-creates a shipment, stores the returned identifiers, and checks shipment state.
+Shopify merchants should use **Connect Shopify** in the UrbnBox dashboard.
+UrbnBox handles authorization, carrier-rate registration, and paid-order
+webhooks automatically. You do not copy Shopify Admin API tokens into UrbnBox.
 
-Use this path for custom storefronts, marketplaces, mobile backends, and order
-management systems.
+<Card title="Connect Shopify" icon="shopify" href="/guides/shopify">
+  See the merchant connection flow.
+</Card>
 
-<Card title="Create a shipment with the API" icon="arrow-right"
-  href="/quickstart">
-  Follow the API quickstart.
+## WooCommerce
+
+Install the UrbnBox WooCommerce shipping plugin and configure your UrbnBox
+credential in WordPress.
+
+<Card title="Install the WooCommerce integration" icon="wordpress" href="/guides/woocommerce">
+  Configure the shipping method.
+</Card>
+
+## Custom ecommerce platforms
+
+Use the Partner API when your application already has a trusted backend. Your
+backend can request shipping quotes, create shipments, retrieve shipment state,
+and receive signed UrbnBox lifecycle webhooks.
+
+This is the preferred path for custom storefronts, marketplaces, mobile
+backends, ERP systems, OMS platforms, and WMS integrations. You do not need a
+platform-specific UrbnBox plugin.
+
+<Card title="Integrate with the Partner API" icon="arrow-right" href="/quickstart">
+  Create credentials and make your first request.
+</Card>
+
+## Vendor operations API
+
+Use the Vendor API when the external system needs deeper commerce operations
+such as orders, products, inventory adjustments, pickups, returns, bulk imports,
+and webhooks.
+
+<Card title="Explore the Vendor API" icon="brackets-curly" href="/reference-overview">
+  Review the available API surfaces.
 </Card>
 
 ## Checkout widget
 
-The widget renders a locker selector and booking form. It calls the public
-booking endpoints with an origin-restricted publishable key.
-
-Use this path when you can add HTML and JavaScript to checkout but do not want
+Use the widget when you can add HTML and JavaScript to checkout but do not want
 to build a locker selection interface.
 
-<Card title="Embed the checkout widget" icon="arrow-right"
-  href="/guides/checkout-widget">
+<Card title="Embed the checkout widget" icon="arrow-right" href="/guides/checkout-widget">
   Add the widget to your page.
 </Card>
-
-## Ecommerce platforms
-
-The Shopify integration exposes carrier and fulfillment callbacks. The
-WooCommerce plugin requests a quote during checkout and creates a shipment
-after an order reaches the completed state.
-
-<Columns cols={2}>
-  <Card title="Shopify" icon="shopify" href="/guides/shopify">
-    Configure carrier rates and fulfillment.
-  </Card>
-  <Card title="WooCommerce" icon="wordpress" href="/guides/woocommerce">
-    Install and configure the shipping method.
-  </Card>
-</Columns>
