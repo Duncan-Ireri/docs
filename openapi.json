@@ -621,11 +621,12 @@
           "Shopify"
         ],
         "summary": "Get Shopify carrier rates",
-        "description": "Shopify calls this endpoint to request an UrbnBox shipping rate. UrbnBox validates the Shopify HMAC signature.",
+        "description": "Shopify calls this endpoint to request an UrbnBox shipping rate. The callback URL is provisioned by UrbnBox with a signed partner-bound token.",
         "operationId": "shopifyCarrierRates",
         "security": [
           {
-            "shopifyHmac": []
+            "shopifyCarrierPartner": [],
+            "shopifyCarrierToken": []
           }
         ],
         "requestBody": {
@@ -673,14 +674,14 @@
         }
       }
     },
-    "/integrations/shopify/fulfillment": {
+    "/integrations/shopify/orders-paid": {
       "post": {
         "tags": [
           "Shopify"
         ],
-        "summary": "Process a Shopify fulfillment",
-        "description": "Creates a shipment for a recognized Shopify store when lockers are available.",
-        "operationId": "shopifyFulfillment",
+        "summary": "Process a paid Shopify order",
+        "description": "Creates an UrbnBox shipment for a connected Shopify store when a paid order selected UrbnBox delivery.",
+        "operationId": "shopifyOrderPaid",
         "security": [
           {
             "shopifyHmac": []
@@ -1303,6 +1304,18 @@
         "in": "header",
         "name": "X-API-Key",
         "description": "Publishable key restricted to allowed browser origins."
+      },
+      "shopifyCarrierPartner": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "partner",
+        "description": "Partner identifier embedded in the callback URL provisioned by UrbnBox."
+      },
+      "shopifyCarrierToken": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "token",
+        "description": "Signed carrier callback token provisioned by UrbnBox. Merchants do not configure this value manually."
       },
       "shopifyHmac": {
         "type": "apiKey",
