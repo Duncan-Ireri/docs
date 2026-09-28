@@ -63,7 +63,7 @@ Shopify calls:
 POST https://portal.urbnbox.io/integrations/shopify/carrier-rates
 ```
 
-UrbnBox validates Shopify's HMAC signature and returns
+UrbnBox validates the signed carrier callback URL created during installation and returns
 `urbnbox_locker` when the destination can be served. Prices are returned in
 minor currency units as required by Shopify.
 
@@ -104,7 +104,8 @@ connection.
 ## Security
 
 UrbnBox validates Shopify OAuth callbacks and webhook signatures before
-processing them. OAuth state is short-lived and bound to the UrbnBox partner
+processing them. Carrier-rate callbacks use an unguessable, signed URL token
+bound to the UrbnBox partner that installed the carrier service. OAuth state is short-lived and bound to the UrbnBox partner
 that initiated the connection.
 
 Shopify access and refresh tokens are encrypted at rest and are never displayed
