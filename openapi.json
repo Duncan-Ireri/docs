@@ -621,11 +621,12 @@
           "Shopify"
         ],
         "summary": "Get Shopify carrier rates",
-        "description": "Shopify calls this endpoint to request an UrbnBox shipping rate. UrbnBox validates the Shopify HMAC signature.",
+        "description": "Shopify calls this endpoint to request an UrbnBox shipping rate. The callback URL is provisioned by UrbnBox with a signed partner-bound token.",
         "operationId": "shopifyCarrierRates",
         "security": [
           {
-            "shopifyHmac": []
+            "shopifyCarrierPartner": [],
+            "shopifyCarrierToken": []
           }
         ],
         "requestBody": {
@@ -1303,6 +1304,18 @@
         "in": "header",
         "name": "X-API-Key",
         "description": "Publishable key restricted to allowed browser origins."
+      },
+      "shopifyCarrierPartner": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "partner",
+        "description": "Partner identifier embedded in the callback URL provisioned by UrbnBox."
+      },
+      "shopifyCarrierToken": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "token",
+        "description": "Signed carrier callback token provisioned by UrbnBox. Merchants do not configure this value manually."
       },
       "shopifyHmac": {
         "type": "apiKey",
