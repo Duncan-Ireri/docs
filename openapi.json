@@ -673,14 +673,14 @@
         }
       }
     },
-    "/integrations/shopify/fulfillment": {
+    "/integrations/shopify/orders-paid": {
       "post": {
         "tags": [
           "Shopify"
         ],
-        "summary": "Process a Shopify fulfillment",
-        "description": "Creates a shipment for a recognized Shopify store when lockers are available.",
-        "operationId": "shopifyFulfillment",
+        "summary": "Process a paid Shopify order",
+        "description": "Creates an UrbnBox shipment for a connected Shopify store when a paid order selected UrbnBox delivery.",
+        "operationId": "shopifyOrderPaid",
         "security": [
           {
             "shopifyHmac": []
