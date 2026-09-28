@@ -1,69 +1,117 @@
 ---
 title: "Shopify"
-description: "Connect Shopify carrier rates and fulfillment events to UrbnBox."
+description: "Connect Shopify to UrbnBox without copying API tokens or configuring callbacks by hand."
 ---
 
-The Shopify integration supports two server-to-server callbacks:
+UrbnBox provides a managed Shopify connection for merchants that want UrbnBox
+rates at checkout and automatic shipment creation after payment.
 
-- A carrier service callback that returns an UrbnBox checkout rate.
-- A fulfillment webhook that creates an UrbnBox shipment.
+You connect the store from the UrbnBox vendor workspace. UrbnBox handles the
+Shopify authorization flow and configures the required Shopify resources.
 
-Both callbacks validate Shopify's `X-Shopify-Hmac-Sha256` signature against the
-raw request body.
-
-## Prerequisites
+## Before you connect
 
 You need:
 
-- A Shopify app secret configured in UrbnBox.
-- An UrbnBox partner record linked to your `*.myshopify.com` domain.
-- Permission to configure a Shopify carrier service and webhook.
+- A Shopify store and its permanent `*.myshopify.com` domain.
+- An UrbnBox workspace with developer tools enabled.
+- Workspace owner or admin access.
+- The city that orders dispatch from.
 
-## Configure carrier rates
+Your Shopify plan must support third-party carrier-calculated shipping for
+UrbnBox rates to appear at checkout.
 
-Register this callback URL as the carrier service:
+## Connect your store
+
+<Steps>
+  <Step title="Open Integrations">
+    Sign in to UrbnBox and open **Integrations**.
+  </Step>
+  <Step title="Enter your Shopify store">
+    In the **Shopify** card, enter your `*.myshopify.com` domain and dispatch city.
+  </Step>
+  <Step title="Approve UrbnBox">
+    Click **Connect Shopify**. UrbnBox redirects you to Shopify to approve the
+    requested permissions.
+  </Step>
+  <Step title="Return to UrbnBox">
+    After approval, Shopify redirects you back to UrbnBox. The integration page
+    shows the store as **Connected**.
+  </Step>
+</Steps>
+
+You do not need to create a Shopify custom app, copy an Admin API token, or
+register callback URLs manually.
+
+## What UrbnBox configures
+
+During installation, UrbnBox automatically:
+
+1. Registers **UrbnBox Locker Delivery** as a Shopify carrier service.
+2. Subscribes to Shopify's paid-order event.
+3. Subscribes to the app-uninstalled event so credentials are removed when the
+   merchant uninstalls UrbnBox.
+4. Stores the store domain and dispatch city against the UrbnBox partner workspace.
+
+The Shopify app requests `read_orders` and `write_shipping`.
+
+## Checkout rates
+
+Shopify calls:
 
 ```text
-https://portal.urbnbox.io/integrations/shopify/carrier-rates
+POST https://portal.urbnbox.io/integrations/shopify/carrier-rates
 ```
 
-For an available route, UrbnBox returns the `urbnbox_locker` service in KES.
-When no locker is available, it returns an empty `rates` array.
+UrbnBox validates Shopify's HMAC signature and returns
+`urbnbox_locker` when the destination can be served. Prices are returned in
+minor currency units as required by Shopify.
 
-## Configure fulfillment
+If the route cannot be served, UrbnBox returns an empty `rates` array.
 
-Register this callback URL for the fulfillment event used by your app:
+## Paid orders
+
+When an order that selected UrbnBox is paid, Shopify calls:
 
 ```text
-https://portal.urbnbox.io/integrations/shopify/fulfillment
+POST https://portal.urbnbox.io/integrations/shopify/orders-paid
 ```
 
-The request must include the `X-Shopify-Shop-Domain` header. UrbnBox uses it to
-find the partner account.
+UrbnBox validates the webhook, resolves the connected store, uses the workspace
+dispatch city as the origin, and creates the shipment.
 
-When the route has available lockers, UrbnBox creates a shipment and returns
-its ID and tracking URL.
-
-```json
-{
-  "shipment_id": "3f8a2c1d-4d9e-4abc-81fd-7b234f114c99",
-  "tracking_url": "https://portal.urbnbox.io/s/s4a9f1b2c3d4e5f6"
-}
-```
-
-<Warning>
-  The current callback acknowledges unknown stores, invalid fulfillment
-  payloads, and unavailable routes with `200 OK`. Monitor UrbnBox shipment
-  creation instead of treating every Shopify acknowledgement as a created
-  shipment.
-</Warning>
+Paid-order processing is idempotent. Shopify retries do not create duplicate
+shipments.
 
 ## Weight tiers
 
-UrbnBox calculates a tier from the total line-item weight.
+UrbnBox derives the shipment tier from the total line-item weight.
 
 | Total weight | Tier |
 | --- | --- |
 | Less than 5 kg | `light` |
 | 5 kg to less than 20 kg | `medium` |
 | 20 kg or more | `heavy` |
+
+## Disconnect
+
+In **Integrations → Shopify**, click **Disconnect Shopify**.
+
+UrbnBox removes the connection and attempts to remove its carrier service from
+Shopify. Uninstalling the app from Shopify also removes the stored UrbnBox
+connection.
+
+## Security
+
+UrbnBox validates Shopify OAuth callbacks and webhook signatures before
+processing them. OAuth state is short-lived and bound to the UrbnBox partner
+that initiated the connection.
+
+Shopify access and refresh tokens are encrypted at rest and are never displayed
+in the UrbnBox dashboard.
+
+<Info>
+  If you run a custom storefront, marketplace, mobile backend, or another
+  ecommerce platform, you do not need to emulate Shopify. Use the
+  [Partner API](/quickstart) or [Vendor API](/reference-overview) directly.
+</Info>
