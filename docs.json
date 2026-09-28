@@ -70,7 +70,7 @@
             "group": "Shopify callbacks",
             "pages": [
               "POST /integrations/shopify/carrier-rates",
-              "POST /integrations/shopify/fulfillment"
+              "POST /integrations/shopify/orders-paid"
             ]
           },
           {
