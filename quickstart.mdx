@@ -1,106 +1,100 @@
 ---
-title: "API quickstart"
-description: "Quote a route, create your first UrbnBox shipment, and retrieve its status."
+title: "Quickstart"
+description: "Create your first UrbnBox delivery order and follow it to the customer's door."
 ---
 
-Use the partner API when your backend controls checkout or fulfillment. This
-quickstart creates one locker-to-locker shipment.
+A delivery order sends an UrbnBox rider from your UrbnBox outlet to your
+customer's address. This quickstart creates one delivery order with the Vendor
+API and reads its status back.
 
 ## Prerequisites
 
 Before you begin, you need:
 
-- An active UrbnBox partner account.
-- A secret test or live API key.
-- The origin and destination city.
-- The recipient's name and phone number.
+- An active UrbnBox vendor account.
+- A vendor API key. Create one under **Integrations** in the vendor dashboard.
+  Vendor keys begin with `ubx_`.
+- At least one active product in your UrbnBox catalogue with stock available.
+- The customer's name, WhatsApp number and delivery address.
 
 <Warning>
-  Keep secret keys on your server. Never add a key beginning with `ub_live_` or
-  `ub_test_` to browser code, a mobile app, or a public repository.
+  Keep API keys on your server. Never add a key to browser code, a mobile app,
+  or a public repository.
 </Warning>
 
-## Create a shipment
+## Create a delivery order
 
 <Steps>
-  <Step title="Request a quote">
-    Confirm that lockers are available and retrieve the fee in whole KES.
+  <Step title="Find the product IDs">
+    Every order lists the items it carries. Each item references a product in
+    your UrbnBox catalogue.
 
     ```bash
-    curl --request POST \
-      --url https://portal.urbnbox.io/api/partner/v1/shipment-quote \
-      --header "Content-Type: application/json" \
-      --header "X-API-Key: $URBNBOX_API_KEY" \
-      --data '{
-        "destination_city": "Mombasa",
-        "weight_tier": "light",
-        "starts_at": "2026-07-05",
-        "ends_at": "2026-07-08"
-      }'
+    curl \
+      --url https://portal.urbnbox.io/api/vendor/v1/products \
+      --header "X-API-Key: $URBNBOX_API_KEY"
     ```
 
-    Continue only when the response contains `"available": true`.
+    Note the `ID` of each product you want to send.
   </Step>
 
-  <Step title="Create the shipment">
-    Send the order and recipient details from your backend.
+  <Step title="Create the order">
+    Send the customer and delivery details from your backend.
 
     ```bash
     curl --request POST \
-      --url https://portal.urbnbox.io/api/partner/v1/shipments \
+      --url https://portal.urbnbox.io/api/vendor/v1/orders \
       --header "Content-Type: application/json" \
       --header "X-API-Key: $URBNBOX_API_KEY" \
       --data '{
         "external_reference": "ORDER-1001",
-        "recipient_name": "Jane Mwangi",
-        "recipient_phone": "+254712345678",
-        "origin_city": "Nairobi",
-        "destination_city": "Mombasa",
-        "weight_tier": "light",
-        "starts_at": "2026-07-05",
-        "ends_at": "2026-07-08"
+        "client_name": "Jane Mwangi",
+        "client_phone": "+254712345678",
+        "fulfillment_type": "delivery",
+        "address": "Kenyatta Avenue, Nairobi",
+        "items": [
+          { "product_id": "PRODUCT_ID", "quantity": 2 }
+        ]
       }'
     ```
 
-    Save the returned `id`, `tracking_url`, and `deposit_pin`.
+    UrbnBox geocodes the address when you do not send `client_lat` and
+    `client_lng`, and calculates the delivery fee. Save the returned `ID`.
   </Step>
 
-  <Step title="Retrieve the shipment">
-    Use the shipment ID to read its current status.
+  <Step title="Read the order status">
+    Use the order ID to follow the order from `draft` to `delivered`.
 
     ```bash
     curl \
-      --url https://portal.urbnbox.io/api/partner/v1/shipments/SHIPMENT_ID \
+      --url https://portal.urbnbox.io/api/vendor/v1/orders/ORDER_ID \
       --header "X-API-Key: $URBNBOX_API_KEY"
     ```
   </Step>
 </Steps>
 
 <Check>
-  Your integration works when the API returns the same shipment ID and a
-  tracking URL.
+  Your integration works when the order comes back with the same `ID`, your
+  items, and a `DeliveryFeeKES` value.
 </Check>
 
-## Handle the creation response
+## What happens next
 
-The `deposit_pin` appears in the creation response. Store it securely at that
-time. It is not returned by the retrieve endpoint.
+New orders start as `draft`. The customer confirms the order on its public
+page, UrbnBox assigns a rider, and the order moves through `assigned`,
+`packing` and `dispatched` to `delivered`. See [Orders](/api-reference/vendor/orders)
+for every field, fulfilment type and status.
 
-You can send `deposit_whatsapp_link` to the person who deposits the parcel. Send
-`collection_whatsapp_link` to the recipient when your fulfillment flow requires
-it.
-
-All fee values ending in `_kes` are whole KES amounts. For example, `850`
-represents KES 850.
+All money fields ending in `KES` are whole Kenya shilling amounts. For example,
+`850` represents KES 850.
 
 ## Next steps
 
 <Columns cols={2}>
+  <Card title="Orders reference" icon="rectangle-code" href="/api-reference/vendor/orders">
+    Fulfilment types, statuses, bulk creation and CSV upload.
+  </Card>
   <Card title="Authentication" icon="key" href="/concepts/authentication">
     Choose and secure the correct API key.
-  </Card>
-  <Card title="Endpoint reference" icon="rectangle-code"
-    href="/reference-overview">
-    Review every integration-facing endpoint.
   </Card>
 </Columns>

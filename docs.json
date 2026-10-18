@@ -23,8 +23,9 @@
             ]
           },
           {
-            "group": "Integration guides",
+            "group": "Pickup points",
             "pages": [
+              "guides/pickup-point-shipments",
               "guides/checkout-widget",
               "guides/shopify",
               "guides/woocommerce"
@@ -46,7 +47,33 @@
         "pages": [
           "reference-overview",
           {
-            "group": "Partner API",
+            "group": "Delivery orders",
+            "pages": [
+              "api-reference/vendor/orders",
+              "api-reference/vendor/webhooks",
+              "GET /api/vendor/v1/orders",
+              "POST /api/vendor/v1/orders",
+              "GET /api/vendor/v1/orders/csv-template",
+              "POST /api/vendor/v1/orders/import-csv",
+              "GET /api/vendor/v1/webhooks",
+              "POST /api/vendor/v1/webhooks",
+              "DELETE /api/vendor/v1/webhooks/{id}",
+              "GET /api/vendor/v1/earnings"
+            ]
+          },
+          {
+            "group": "Pickup-point shipments (Vendor API)",
+            "pages": [
+              "api-reference/vendor/shipments",
+              "GET /api/vendor/v1/shipments",
+              "POST /api/vendor/v1/shipments",
+              "GET /api/vendor/v1/shipments/csv-template",
+              "POST /api/vendor/v1/shipments/import-csv",
+              "POST /api/vendor/v1/shipment-quote"
+            ]
+          },
+          {
+            "group": "Pickup-point shipments (Partner API)",
             "pages": [
               "POST /api/partner/v1/shipment-quote",
               "POST /api/partner/v1/shipments",
@@ -58,7 +85,7 @@
             ]
           },
           {
-            "group": "Public booking API",
+            "group": "Pickup-point bookings (browser)",
             "pages": [
               "GET /api/public/stores",
               "GET /api/public/stores/nearby",
@@ -71,27 +98,6 @@
             "pages": [
               "POST /integrations/shopify/carrier-rates",
               "POST /integrations/shopify/orders-paid"
-            ]
-          },
-          {
-            "group": "Vendor API",
-            "pages": [
-              "api-reference/vendor/orders",
-              "api-reference/vendor/shipments",
-              "api-reference/vendor/webhooks",
-              "GET /api/vendor/v1/orders",
-              "POST /api/vendor/v1/orders",
-              "GET /api/vendor/v1/orders/csv-template",
-              "POST /api/vendor/v1/orders/import-csv",
-              "GET /api/vendor/v1/shipments",
-              "POST /api/vendor/v1/shipments",
-              "GET /api/vendor/v1/shipments/csv-template",
-              "POST /api/vendor/v1/shipments/import-csv",
-              "GET /api/vendor/v1/webhooks",
-              "POST /api/vendor/v1/webhooks",
-              "DELETE /api/vendor/v1/webhooks/{id}",
-              "GET /api/vendor/v1/earnings",
-              "POST /api/vendor/v1/shipment-quote"
             ]
           }
         ]
