@@ -14,9 +14,10 @@ https://portal.urbnbox.io
 
 | Group | Authentication | Who uses it | Purpose |
 | --- | --- | --- | --- |
-| Partner API | `X-API-Key` (`ub_live_…`) | Partners | Quotes, shipments, availability, and checkout sessions |
-| Vendor API | `X-API-Key` (`ubx_…`) | Vendors | Orders, shipments, earnings, webhooks |
-| Public booking API | Publishable key (`ubp_live_…`) | Browser widgets | Locker selection and booking |
+| Delivery orders (Vendor API) | `X-API-Key` (`ubx_…`) | Vendors | Delivery orders, CSV validation, webhooks, earnings |
+| Pickup-point shipments (Vendor API) | `X-API-Key` (`ubx_…`) | Vendors | Parcels between pickup points |
+| Pickup-point shipments (Partner API) | `X-API-Key` (`ub_live_…`) | Partners | Quotes, shipments, pickup-point availability, and checkout sessions |
+| Pickup-point bookings | Publishable key (`ubp_live_…`) | Browser widgets | Pickup-point selection and booking |
 | Store discovery | None | Anyone | Active store and nearby-store lookup |
 | Shopify callbacks | Shopify HMAC | Shopify (signed by Shopify) | Carrier rates and paid-order ingestion |
 
@@ -27,8 +28,10 @@ https://portal.urbnbox.io
 
 ## Request conventions
 
-Send JSON bodies with `Content-Type: application/json`. Dates use `YYYY-MM-DD`.
-Money fields ending in `_kes` contain whole KES amounts.
+Send JSON bodies with `Content-Type: application/json`. Shipment dates use
+`YYYY-MM-DD`; order times such as `scheduled_at` use RFC 3339. Money fields
+ending in `_kes` (requests) or `KES` (order responses) contain whole KES
+amounts.
 
 The Partner API is versioned under `/api/partner/v1`. The Vendor API is
 versioned under `/api/vendor/v1`. Public booking routes are not versioned.
@@ -43,8 +46,8 @@ Always branch on the HTTP status before decoding the response.
 | `400` | Invalid JSON, date, query parameter, or required field |
 | `401` | Missing, invalid, or inactive credential |
 | `403` | Credential is not authorized for the operation |
-| `404` | The resource does not exist for this partner |
-| `422` | No lockers are available for the requested shipment |
+| `404` | The resource does not exist for this account |
+| `422` | No pickup-point lockers are available for the requested shipment |
 | `500` | UrbnBox could not complete the request |
 
 <Tip>

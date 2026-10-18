@@ -3,7 +3,7 @@
   "info": {
     "title": "UrbnBox integration API",
     "version": "1.0.0",
-    "description": "Create locker bookings and shipments, discover stores, and connect Shopify."
+    "description": "Create and track delivery orders, send parcels between pickup points, and connect Shopify."
   },
   "servers": [
     {
@@ -14,7 +14,7 @@
   "tags": [
     {
       "name": "Shipments",
-      "description": "Quote, create, and retrieve partner shipments."
+      "description": "Quote, create, and retrieve pickup-point shipments."
     },
     {
       "name": "Checkout sessions",
@@ -34,7 +34,7 @@
     },
     {
       "name": "Vendor API",
-      "description": "Vendor-authenticated endpoints. All require X-API-Key header with a vendor-scoped key."
+      "description": "Vendor-authenticated endpoints for delivery orders, pickup-point shipments and webhooks. All require an X-API-Key header with a vendor key."
     }
   ],
   "paths": {
@@ -434,7 +434,7 @@
           "Store discovery"
         ],
         "summary": "List public stores",
-        "description": "Returns active stores and their locker and shelf capacity.",
+        "description": "Returns active stores and their available capacity.",
         "operationId": "listPublicStores",
         "security": [],
         "responses": {
@@ -744,7 +744,7 @@
           "Vendor API"
         ],
         "summary": "List orders",
-        "description": "Returns a paginated list of orders for the authenticated vendor.",
+        "description": "Returns the vendor's orders, newest first. Use `cursor` with the `next_cursor` from the previous response to page through them.",
         "security": [
           {
             "ApiKeyAuth": []
@@ -752,28 +752,27 @@
         ],
         "parameters": [
           {
-            "name": "status",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter by order status"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
             "name": "page_size",
             "in": "query",
             "schema": {
               "type": "integer",
+              "enum": [
+                10,
+                25,
+                50,
+                100
+              ],
               "default": 25
-            }
+            },
+            "description": "Orders per page"
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The `next_cursor` value from the previous response"
           }
         ],
         "responses": {
@@ -796,8 +795,8 @@
         "tags": [
           "Vendor API"
         ],
-        "summary": "Create order",
-        "description": "Creates a new order. Idempotent on external_reference \u2014 returns the existing order if already created.",
+        "summary": "Create a delivery order",
+        "description": "Creates a delivery or pickup order for products in the vendor's UrbnBox catalogue and reserves their stock. When `external_reference` matches an existing order, that order is returned instead of a new one (still `201`).",
         "security": [
           {
             "ApiKeyAuth": []
@@ -814,11 +813,15 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Existing order returned (idempotent match on external_reference)"
-          },
           "201": {
-            "description": "Order created"
+            "description": "Order created, or the existing order with the same external_reference",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorOrder"
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -1863,14 +1866,12 @@
               "$ref": "#/components/schemas/VendorOrder"
             }
           },
-          "total": {
-            "type": "integer"
-          },
-          "page": {
-            "type": "integer"
-          },
           "page_size": {
             "type": "integer"
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Pass as `cursor` for the next page. Empty on the last page"
           }
         }
       },
@@ -1879,66 +1880,176 @@
         "required": [
           "client_name",
           "client_phone",
-          "description"
+          "items"
         ],
         "properties": {
           "external_reference": {
             "type": "string",
-            "description": "Your order ID for idempotency"
+            "description": "Your order ID. A repeat value returns the existing order"
           },
           "client_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Customer's full name"
           },
           "client_phone": {
-            "type": "string"
+            "type": "string",
+            "description": "Customer's WhatsApp number"
           },
-          "description": {
-            "type": "string"
-          },
-          "quantity": {
-            "type": "integer",
-            "default": 1
-          },
-          "unit_price_kes": {
-            "type": "number"
-          },
-          "pickup_type": {
+          "fulfillment_type": {
             "type": "string",
             "enum": [
-              "locker",
-              "delivery"
-            ]
+              "delivery",
+              "scheduled_delivery",
+              "self_pickup",
+              "scheduled_pickup"
+            ],
+            "default": "delivery"
           },
-          "is_cod": {
-            "type": "boolean"
+          "address": {
+            "type": "string",
+            "description": "Delivery address. Required for delivery and scheduled_delivery"
           },
-          "cod_amount_kes": {
-            "type": "number"
+          "client_lat": {
+            "type": "number",
+            "description": "Delivery latitude. When omitted, the address is geocoded"
+          },
+          "client_lng": {
+            "type": "number",
+            "description": "Delivery longitude"
+          },
+          "scheduled_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Required for scheduled_delivery and scheduled_pickup"
+          },
+          "pickup_name": {
+            "type": "string",
+            "description": "Who collects the order. Required for self_pickup and scheduled_pickup"
+          },
+          "pickup_phone": {
+            "type": "string",
+            "description": "Collector's phone. Required for self_pickup and scheduled_pickup"
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "product_id",
+                "quantity"
+              ],
+              "properties": {
+                "product_id": {
+                  "type": "string",
+                  "description": "An active product in your UrbnBox catalogue"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
           }
+        },
+        "example": {
+          "external_reference": "SHOP-ORDER-1001",
+          "client_name": "Jane Mwangi",
+          "client_phone": "+254712345678",
+          "fulfillment_type": "delivery",
+          "address": "Kenyatta Avenue, Nairobi",
+          "items": [
+            {
+              "product_id": "PRODUCT_ID",
+              "quantity": 2
+            }
+          ]
         }
       },
       "VendorOrder": {
         "type": "object",
+        "description": "Order fields are returned with capitalised names.",
         "properties": {
-          "id": {
+          "ID": {
             "type": "string"
           },
-          "external_reference": {
+          "Status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "confirmed",
+              "assigned",
+              "packing",
+              "dispatched",
+              "delivered",
+              "cancelled"
+            ]
+          },
+          "FulfillmentType": {
             "type": "string"
           },
-          "status": {
+          "ClientName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ClientPhone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "Address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ClientLat": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ClientLng": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ScheduledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "TotalKES": {
+            "type": "integer",
+            "description": "Items plus delivery fee, in whole KES"
+          },
+          "DeliveryFeeKES": {
+            "type": "integer",
+            "description": "Whole KES"
+          },
+          "PublicToken": {
             "type": "string"
           },
-          "client_name": {
-            "type": "string"
-          },
-          "is_cod": {
+          "IsCOD": {
             "type": "boolean"
           },
-          "cod_amount_kes": {
-            "type": "number"
+          "CODAmountKES": {
+            "type": [
+              "integer",
+              "null"
+            ]
           },
-          "created_at": {
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAt": {
             "type": "string",
             "format": "date-time"
           }

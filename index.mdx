@@ -1,18 +1,18 @@
 ---
 title: "UrbnBox integrations"
-description: "Add UrbnBox locker delivery and shipment services to your checkout or platform."
+description: "Send UrbnBox deliveries from your own systems: create delivery orders, track them, and send parcels between towns."
 ---
 
-UrbnBox lets your customers send and collect parcels through a network of
-lockers. You can integrate with the partner API, embed the checkout widget, or
-connect an ecommerce platform.
+UrbnBox delivers your orders to customers across Nairobi and between towns in
+Kenya. Connect your store, order system or backend so orders reach UrbnBox
+without retyping them.
 
 <Columns cols={3}>
-  <Card title="Partner API" icon="brackets-curly" href="/quickstart">
-    Quote and create shipments from your backend.
+  <Card title="Delivery orders" icon="truck" href="/quickstart">
+    Send a rider to your customer's door, now or at a scheduled time.
   </Card>
-  <Card title="Checkout widget" icon="code" href="/guides/checkout-widget">
-    Add a locker picker to an existing checkout.
+  <Card title="Pickup points" icon="location-dot" href="/guides/pickup-point-shipments">
+    Send parcels between towns for the customer to collect.
   </Card>
   <Card title="Ecommerce platforms" icon="cart-shopping" href="/guides/integration-options">
     Connect Shopify or WooCommerce.
@@ -23,8 +23,9 @@ connect an ecommerce platform.
 
 | If you need to | Use |
 | --- | --- |
-| Control shipment creation from your backend | [Partner API](/quickstart) |
-| Add locker booking with browser-side JavaScript | [Checkout widget](/guides/checkout-widget) |
+| Create delivery orders from your backend | [Delivery orders](/quickstart) |
+| Check a spreadsheet of orders before sending it | [CSV validation](/api-reference/vendor/orders#check-a-csv-before-you-send-it) |
+| Send parcels between towns to a pickup point | [Pickup-point shipments](/guides/pickup-point-shipments) |
 | Offer UrbnBox rates in Shopify | [Shopify integration](/guides/shopify) |
 | Offer UrbnBox as a WooCommerce shipping method | [WooCommerce integration](/guides/woocommerce) |
 
@@ -34,12 +35,13 @@ connect an ecommerce platform.
 
 ## What UrbnBox handles
 
-UrbnBox assigns available origin and destination lockers, calculates logistics
-fees, generates deposit and collection credentials, and provides public
-shipment tracking.
+UrbnBox calculates the delivery fee, assigns a rider, contacts your customer on
+WhatsApp, and moves the order from confirmation to delivery. For parcels sent
+between towns, UrbnBox also assigns the pickup points and issues the deposit
+and collection PINs.
 
 Your platform remains responsible for checkout, customer payment, and deciding
-when to create a shipment.
+when to send an order.
 
 <Card title="Review the complete endpoint reference" icon="book"
   href="/reference-overview">
