@@ -1,25 +1,19 @@
 ---
 title: "Shopify"
-description: "Connect Shopify to UrbnBox without copying API tokens or configuring callbacks by hand."
+description: "Offer UrbnBox door delivery at Shopify checkout and book paid orders automatically."
 ---
 
-UrbnBox provides a managed Shopify connection for merchants that want UrbnBox
-rates at checkout and automatic shipment creation after payment.
-
-You connect the store from the UrbnBox vendor workspace. UrbnBox handles the
-Shopify authorization flow and configures the required Shopify resources.
+Connect your Shopify store from the UrbnBox portal. Buyers in Nairobi see **UrbnBox door delivery** with a price from your rate card, and paid orders book themselves.
 
 ## Before you connect
 
 You need:
 
-- A Shopify store and its permanent `*.myshopify.com` domain.
-- An UrbnBox workspace with developer tools enabled.
-- Workspace owner or admin access.
-- The city that orders dispatch from.
+- A Shopify store and its `*.myshopify.com` domain.
+- Owner or admin access to your UrbnBox account, with developer tools switched on.
+- Your dispatch point saved on the portal's **Checkout widget** page. Prices are measured from there.
 
-Your Shopify plan must support third-party carrier-calculated shipping for
-UrbnBox rates to appear at checkout.
+Your Shopify plan must support third-party carrier-calculated shipping.
 
 ## Connect your store
 
@@ -27,92 +21,39 @@ UrbnBox rates to appear at checkout.
   <Step title="Open Integrations">
     Sign in to UrbnBox and open **Integrations**.
   </Step>
-  <Step title="Enter your Shopify store">
-    In the **Shopify** card, enter your `*.myshopify.com` domain and dispatch city.
+  <Step title="Enter your store">
+    In the **Shopify** card, enter your `*.myshopify.com` domain.
   </Step>
   <Step title="Approve UrbnBox">
-    Click **Connect Shopify**. UrbnBox redirects you to Shopify to approve the
-    requested permissions.
+    Click **Connect Shopify** and approve the permissions in Shopify.
   </Step>
-  <Step title="Return to UrbnBox">
-    After approval, Shopify redirects you back to UrbnBox. The integration page
-    shows the store as **Connected**.
+  <Step title="Check it says Connected">
+    Shopify sends you back to UrbnBox, and the card shows **Connected**.
   </Step>
 </Steps>
 
-You do not need to create a Shopify custom app, copy an Admin API token, or
-register callback URLs manually.
+There is no custom app to create and no token to copy. UrbnBox registers its carrier service, subscribes to paid orders and to uninstalls, and asks for `read_orders` and `write_shipping`.
 
-## What UrbnBox configures
+## At checkout
 
-During installation, UrbnBox automatically:
+Shopify asks UrbnBox for a rate when the buyer enters an address. UrbnBox finds the address, checks it is inside the Nairobi metro area, picks a motorbike or van from the cart weight (up to 120 kg and 1,000 kg) and prices it from your card. The rate shows your delivery promise as its description.
 
-1. Registers **UrbnBox Locker Delivery** as a Shopify carrier service.
-2. Subscribes to Shopify's paid-order event.
-3. Subscribes to the app-uninstalled event so credentials are removed when the
-   merchant uninstalls UrbnBox.
-4. Stores the store domain and dispatch city against the UrbnBox partner workspace.
+No rate appears when the address is outside the area, the cart is too heavy, or the address cannot be found.
 
-The Shopify app requests `read_orders` and `write_shipping`.
+## When an order is paid
 
-## Checkout rates
+Shopify tells UrbnBox, and UrbnBox books the order from your dispatch point to the buyer's address. The fee comes out of your wallet when it covers it; otherwise it is taken from your next cash remittance. Shopify's retries never book twice.
 
-Shopify calls:
-
-```text
-POST https://portal.urbnbox.io/integrations/shopify/carrier-rates
-```
-
-UrbnBox validates the signed carrier callback URL created during installation and returns
-`urbnbox_locker` when the destination can be served. Prices are returned in
-minor currency units as required by Shopify.
-
-If the route cannot be served, UrbnBox returns an empty `rates` array.
-
-## Paid orders
-
-When an order that selected UrbnBox is paid, Shopify calls:
-
-```text
-POST https://portal.urbnbox.io/integrations/shopify/orders-paid
-```
-
-UrbnBox validates the webhook, resolves the connected store, uses the workspace
-dispatch city as the origin, and creates the shipment.
-
-Paid-order processing is idempotent. Shopify retries do not create duplicate
-shipments.
-
-## Weight tiers
-
-UrbnBox derives the shipment tier from the total line-item weight.
-
-| Total weight | Tier |
-| --- | --- |
-| Less than 5 kg | `light` |
-| 5 kg to less than 20 kg | `medium` |
-| 20 kg or more | `heavy` |
+The order appears in the portal with its Shopify number, and the buyer gets a WhatsApp message with a tracking link.
 
 ## Disconnect
 
-In **Integrations → Shopify**, click **Disconnect Shopify**.
-
-UrbnBox removes the connection and attempts to remove its carrier service from
-Shopify. Uninstalling the app from Shopify also removes the stored UrbnBox
-connection.
+In **Integrations**, click **Disconnect Shopify**. Uninstalling the app in Shopify does the same.
 
 ## Security
 
-UrbnBox validates Shopify OAuth callbacks and webhook signatures before
-processing them. Carrier-rate callbacks use an unguessable, signed URL token
-bound to the UrbnBox partner that installed the carrier service. OAuth state is short-lived and bound to the UrbnBox partner
-that initiated the connection.
-
-Shopify access and refresh tokens are encrypted at rest and are never displayed
-in the UrbnBox dashboard.
+UrbnBox checks Shopify's signature on every callback and webhook, and carrier-rate callbacks use a signed URL tied to your account. Shopify tokens are encrypted at rest and never shown in the portal.
 
 <Info>
-  If you run a custom storefront, marketplace, mobile backend, or another
-  ecommerce platform, you do not need to emulate Shopify. Use the
-  [Partner API](/guides/pickup-point-shipments) or [Vendor API](/reference-overview) directly.
+  Running a custom storefront or another platform? Use the [checkout widget](/guides/checkout-widget) and the [API](/quickstart) instead.
 </Info>

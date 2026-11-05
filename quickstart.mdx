@@ -1,100 +1,81 @@
 ---
 title: "Quickstart"
-description: "Create your first UrbnBox delivery order and follow it to the customer's door."
+description: "Price an order, book it and track it with API v2 in a few minutes."
 ---
 
-A delivery order sends an UrbnBox rider from your UrbnBox outlet to your
-customer's address. This quickstart creates one delivery order with the Vendor
-API and reads its status back.
+This walks through the three calls most integrations need: a quote, an order, and reading the order back. Use a test key while you build; test orders are never dispatched or charged.
 
-## Prerequisites
+## 1. Make a secret key
 
-Before you begin, you need:
+Sign in to the UrbnBox portal, open **Integrations** and create a **Secret** key. Choose **Test**. Copy it straight away; it is shown once.
 
-- An active UrbnBox vendor account.
-- A vendor API key. Create one under **Integrations** in the vendor dashboard.
-  Vendor keys begin with `ubx_`.
-- At least one active product in your UrbnBox catalogue with stock available.
-- The customer's name, WhatsApp number and delivery address.
+```bash
+export URBNBOX_KEY="dk_test_..."
+```
 
 <Warning>
-  Keep API keys on your server. Never add a key to browser code, a mobile app,
-  or a public repository.
+  A secret key books orders on your account. Keep it on your server, never in a browser, app or repository.
 </Warning>
 
-## Create a delivery order
+## 2. Get a price
 
-<Steps>
-  <Step title="Find the product IDs">
-    Every order lists the items it carries. Each item references a product in
-    your UrbnBox catalogue.
+Every order is booked against a quote, which fixes the price for 24 hours.
 
-    ```bash
-    curl \
-      --url https://portal.urbnbox.io/api/vendor/v1/products \
-      --header "X-API-Key: $URBNBOX_API_KEY"
-    ```
+```bash
+curl https://portal.urbnbox.io/api/v2/quotes \
+  -H "X-API-Key: $URBNBOX_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"kind": "delivery", "vehicle_class": "rider", "distance_km": 7.5}'
+```
 
-    Note the `ID` of each product you want to send.
-  </Step>
+```json
+{
+  "id": "4f1c2b0e-...",
+  "kind": "delivery",
+  "vehicle_class": "rider",
+  "total_kes": 350,
+  "test": true,
+  "expires_at": "2026-11-06T09:30:00Z"
+}
+```
 
-  <Step title="Create the order">
-    Send the customer and delivery details from your backend.
+## 3. Book the order
 
-    ```bash
-    curl --request POST \
-      --url https://portal.urbnbox.io/api/vendor/v1/orders \
-      --header "Content-Type: application/json" \
-      --header "X-API-Key: $URBNBOX_API_KEY" \
-      --data '{
-        "external_reference": "ORDER-1001",
-        "client_name": "Jane Mwangi",
-        "client_phone": "+254712345678",
-        "fulfillment_type": "delivery",
-        "address": "Kenyatta Avenue, Nairobi",
-        "items": [
-          { "product_id": "PRODUCT_ID", "quantity": 2 }
-        ]
-      }'
-    ```
+Send the quote ID, your own order number as `reference`, and who to deliver to. UrbnBox collects from the dispatch point saved on your account.
 
-    UrbnBox geocodes the address when you do not send `client_lat` and
-    `client_lng`, and calculates the delivery fee. Save the returned `ID`.
-  </Step>
+```bash
+curl https://portal.urbnbox.io/api/v2/orders \
+  -H "X-API-Key: $URBNBOX_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "quote_id": "4f1c2b0e-...",
+    "reference": "ORDER-1001",
+    "recipient": { "name": "Jane Mwangi", "phone": "+254712345678", "address": "Kilimani, Nairobi" },
+    "description": "2 cartons",
+    "collect_kes": 2400
+  }'
+```
 
-  <Step title="Read the order status">
-    Use the order ID to follow the order from `draft` to `delivered`.
+`collect_kes` is cash the driver collects for your goods; leave it out if the buyer has already paid you. The response is the order, with an `id`, a `status` of `booked` and a `tracking_url` your recipient also gets on WhatsApp.
 
-    ```bash
-    curl \
-      --url https://portal.urbnbox.io/api/vendor/v1/orders/ORDER_ID \
-      --header "X-API-Key: $URBNBOX_API_KEY"
-    ```
-  </Step>
-</Steps>
+<Tip>
+  `reference` makes booking safe to retry. Sending the same reference again returns the order you already booked instead of a second one.
+</Tip>
 
-<Check>
-  Your integration works when the order comes back with the same `ID`, your
-  items, and a `DeliveryFeeKES` value.
-</Check>
+## 4. Follow it
 
-## What happens next
+```bash
+curl https://portal.urbnbox.io/api/v2/orders/ORDER_ID -H "X-API-Key: $URBNBOX_KEY"
+```
 
-New orders start as `draft`. The customer confirms the order on its public
-page, UrbnBox assigns a rider, and the order moves through `assigned`,
-`packing` and `dispatched` to `delivered`. See [Orders](/api-reference/vendor/orders)
-for every field, fulfilment type and status.
+An order moves through `booked`, `scheduled` (on a vehicle), `in_progress` (picked up) and `completed`, or ends `cancelled` or `failed`. Rather than polling, add a [webhook](/api-reference/webhooks) and UrbnBox will tell you as it happens.
 
-All money fields ending in `KES` are whole Kenya shilling amounts. For example,
-`850` represents KES 850.
+## Going live
+
+When UrbnBox has approved your account, create a **Live** secret key and swap it in. Nothing else changes.
 
 ## Next steps
 
-<Columns cols={2}>
-  <Card title="Orders reference" icon="rectangle-code" href="/api-reference/vendor/orders">
-    Fulfilment types, statuses, bulk creation and CSV upload.
-  </Card>
-  <Card title="Authentication" icon="key" href="/concepts/authentication">
-    Choose and secure the correct API key.
-  </Card>
-</Columns>
+- [Orders](/api-reference/orders): several drops, your own pickup point, batches and CSVs.
+- [Checkout widget](/guides/checkout-widget): let buyers see the fee before they pay.
+- [Authentication](/concepts/authentication): key types and errors.

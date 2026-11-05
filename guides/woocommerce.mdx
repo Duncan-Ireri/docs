@@ -1,70 +1,38 @@
 ---
 title: "WooCommerce"
-description: "Add UrbnBox locker delivery as a WooCommerce shipping method."
+description: "Add the UrbnBox delivery widget to WooCommerce checkout and book orders when they are paid."
 ---
 
-The UrbnBox WooCommerce plugin requests a shipment quote during checkout and
-creates a shipment when an order reaches the completed state.
+The UrbnBox Delivery plugin puts the [checkout widget](/guides/checkout-widget) into your WooCommerce checkout and books each order with UrbnBox from your server once payment completes.
 
-## Prerequisites
+## Before you start
 
-You need WordPress 6.0 or later, PHP 8.0 or later, WooCommerce, and an UrbnBox
-secret API key.
+You need WordPress with WooCommerce 6.0 or later, PHP 7.4 or later, and from the UrbnBox portal's **Integrations** page:
 
-## Install the plugin
+- a **publishable** key (`dpk_`) with your shop's website on it, and
+- a **secret** key (`dk_`).
+
+## Install
 
 <Steps>
   <Step title="Download the plugin">
-    While signed in to the UrbnBox portal, download the plugin archive from:
-
-    ```text
-    https://portal.urbnbox.io/api/cms/v1/plugins/woocommerce
-    ```
-
-    Extract `urbnbox-shipping.php` into:
-
-    ```text
-    wp-content/plugins/urbnbox-shipping/urbnbox-shipping.php
-    ```
+    While signed in to the portal, download it from `https://portal.urbnbox.io/api/v2/cms/plugins/woocommerce`.
   </Step>
-
-  <Step title="Activate the plugin">
-    In WordPress, open **Plugins** and activate **UrbnBox Locker Shipping**.
+  <Step title="Upload it">
+    In WordPress, go to **Plugins**, then **Add New**, then **Upload Plugin**, and choose the zip. Activate **UrbnBox Delivery**.
   </Step>
-
-  <Step title="Add the shipping method">
-    In WooCommerce, open **Settings** → **Shipping** → **Shipping zones**.
-    Edit a zone and add **UrbnBox Locker Pickup**.
-  </Step>
-
-  <Step title="Configure credentials">
-    Enter your UrbnBox secret key. Keep the API URL set to:
-
-    ```text
-    https://portal.urbnbox.io
-    ```
+  <Step title="Fill in the settings">
+    Open **WooCommerce**, then **UrbnBox Delivery**. Enter both keys, your pickup name, phone and address, and how many kilograms one unit of your product weights is (1 if you weigh products in kg, 0.001 for grams). Leave the UrbnBox address as `https://portal.urbnbox.io`.
   </Step>
 </Steps>
 
-## How rates work
+## How it works
 
-The plugin converts the cart weight to an UrbnBox weight tier and calls the
-shipment quote endpoint. It adds a checkout rate only when the response
-contains `"available": true`.
+1. The widget appears above the payment options. The buyer pins their location and sees the fee, which they pay the driver on delivery, so it stays out of your order total.
+2. The quote is saved on the WooCommerce order.
+3. When payment completes, or a cash-on-delivery order moves to processing, the plugin books it with `POST /api/v2/orders`. The UrbnBox order ID and tracking link go into the order notes.
+4. If booking fails, the plugin retries after 2, 4, 8, 16 and 32 minutes. A refusal (for example an expired quote) is noted on the order straight away so someone can book it from the portal.
 
-The plugin reads the destination from WooCommerce's city field. Keep product
-weights and store city settings complete.
+## Test it
 
-## How shipment creation works
-
-The plugin calls `POST /api/partner/v1/shipments` after WooCommerce fires the
-`woocommerce_order_status_completed` action.
-
-<Warning>
-  The current plugin sends shipment creation as a non-blocking request and
-  does not store the response. Add operational monitoring or adapt the plugin
-  before relying on automatic creation in production.
-</Warning>
-
-The plugin maps the WooCommerce order ID to `external_reference`, the billing
-phone to `recipient_phone`, and the store and shipping cities to the route.
+Use `dpk_test_` and `dk_test_` keys first. Place an order, then check its notes for the UrbnBox order ID. Test orders show in the portal but are never dispatched.

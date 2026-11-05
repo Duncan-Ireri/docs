@@ -1,68 +1,24 @@
 ---
-title: "Choose an integration"
-description: "Choose the lowest-friction way to send UrbnBox deliveries from your stack."
+title: "Integration options"
+description: "Pick the way to connect your store or systems to UrbnBox."
 ---
 
-Start with the integration that matches the system you already operate.
+All of these use API v2 underneath, so you can start with one and add another later.
 
-| Integration | Setup | Credential | Use it when |
-| --- | --- | --- | --- |
-| Vendor API: delivery orders | Your backend | Vendor API key | You want UrbnBox riders to deliver your orders to customers |
-| Shopify Connect | UrbnBox dashboard | Shopify OAuth | Your store runs on Shopify |
-| WooCommerce | WordPress plugin | Secret key | Your store runs on WooCommerce |
-| Partner API: pickup-point shipments | Your backend | Secret key | You run a storefront, marketplace or OMS and send parcels between towns |
-| Checkout widget | Customer browser | Publishable key | Customers choose a pickup point at checkout, with minimal frontend code |
+| Option | Good for | You need |
+| --- | --- | --- |
+| [Shopify](/guides/shopify) | Shopify stores delivering in Nairobi | Owner or admin access to UrbnBox and Shopify |
+| [WooCommerce](/guides/woocommerce) | WordPress stores | A secret key and a publishable key |
+| [Checkout widget](/guides/checkout-widget) | Any website with its own checkout | A publishable key, and a server that books with a secret key |
+| [API](/quickstart) | Order systems, marketplaces, warehouses, apps | A secret key |
+| CSV on the portal | Occasional batches without code | A portal login |
 
-## Delivery orders
+## Questions worth answering first
 
-Use the Vendor API when your system should hand orders to UrbnBox for delivery.
-Your backend creates each order with the customer's details and address, and
-reads its status as it moves from confirmation to delivery. You can also check
-a spreadsheet of orders before you send them.
+**Who pays the delivery fee?** By default the buyer pays the driver on delivery. You can instead have UrbnBox take it from your wallet at booking (`merchant_wallet`) or out of the next cash remittance (`merchant_cod`). Contract customers can be invoiced monthly.
 
-<Card title="Create your first delivery order" icon="arrow-right" href="/quickstart">
-  Create a vendor API key and make your first request.
-</Card>
+**Does the driver collect cash for your goods?** Set `collect_kes` on the order. UrbnBox pays it back to you the next morning, less any fees you owe.
 
-## Shopify
+**Where do orders start?** Most shops dispatch from one place. Save it on the portal's **Checkout widget** page and every short-form order starts there. If you dispatch from several places, send the pickup as a stop on each order.
 
-Shopify merchants should use **Connect Shopify** in the UrbnBox dashboard.
-UrbnBox handles authorization, carrier-rate registration, and paid-order
-webhooks automatically. You do not copy Shopify Admin API tokens into UrbnBox.
-Shopify orders are delivered through UrbnBox pickup points.
-
-<Card title="Connect Shopify" icon="shopify" href="/guides/shopify">
-  See the merchant connection flow.
-</Card>
-
-## WooCommerce
-
-Install the UrbnBox WooCommerce shipping plugin and configure your UrbnBox
-credential in WordPress. The plugin offers pickup-point delivery at checkout.
-
-<Card title="Install the WooCommerce integration" icon="wordpress" href="/guides/woocommerce">
-  Configure the shipping method.
-</Card>
-
-## Pickup-point shipments
-
-Use the Partner API when your application already has a trusted backend and
-sends parcels between towns. Your backend can request a quote, create
-shipments, retrieve shipment state, and receive signed UrbnBox lifecycle
-webhooks.
-
-This suits custom storefronts, marketplaces, mobile backends, ERP and OMS
-platforms. You do not need a platform-specific UrbnBox plugin.
-
-<Card title="Send a pickup-point shipment" icon="arrow-right" href="/guides/pickup-point-shipments">
-  Create credentials and make your first request.
-</Card>
-
-## Checkout widget
-
-Use the widget when you can add HTML and JavaScript to checkout but do not want
-to build a pickup-point picker yourself.
-
-<Card title="Embed the checkout widget" icon="arrow-right" href="/guides/checkout-widget">
-  Add the widget to your page.
-</Card>
+**Do you need to know when an order is delivered?** Add a [webhook](/api-reference/webhooks).

@@ -1,0 +1,60 @@
+---
+title: "Orders and quotes"
+description: "How UrbnBox prices, books and carries an order, and the statuses you will see."
+---
+
+Three ideas hold UrbnBox together.
+
+1. You ask for an **order**: goods picked up somewhere and taken somewhere else.
+2. UrbnBox carries it on a **trip**, a vehicle's run made of ordered **stops**. Your order might share a trip with others.
+3. Every price comes from your **rate card** and is fixed in a **quote** before anything moves.
+
+## Quotes
+
+A quote is a price you can rely on. It lists what makes up the total (the distance band, extra drops, a cold-chain surcharge and so on) and stays valid for 24 hours. Every order is booked against one, and your invoice uses the quote's amount.
+
+If UrbnBox has agreed special rates with you, they sit on your own rate card and take precedence over the standard card rule by rule.
+
+## Kinds of order
+
+| Kind | What it is | Priced by |
+| --- | --- | --- |
+| `delivery` | Within a city, to one or more drops | Distance band, plus a flat amount per extra drop |
+| `lane` | Town to town | A flat rate for the lane |
+| `hire` | A vehicle and driver for a half day or a day | The period |
+
+Any kind can be `dry`, `chilled` or `frozen`.
+
+## Stops
+
+Each order has a pickup and at least one drop. A drop can ask the driver to collect cash for your goods (`collect_kes`), and can require a 4-digit handover code that UrbnBox sends the recipient on WhatsApp.
+
+If a recipient refuses a delivery, UrbnBox books the return trip automatically and charges it to you at the return rate.
+
+## Statuses
+
+| Order status | Means |
+| --- | --- |
+| `booked` | Accepted and priced, waiting for a vehicle. You can still cancel |
+| `scheduled` | On a trip that has been dispatched |
+| `in_progress` | Picked up |
+| `completed` | Every drop is done |
+| `failed` | Could not be delivered |
+| `cancelled` | Cancelled before dispatch |
+
+Each stop goes `pending`, `arrived`, then `done` or `failed`. The order follows its stops.
+
+## Who pays the fee
+
+| `fee_payer` | Means |
+| --- | --- |
+| `buyer_on_delivery` | The driver collects the fee from the recipient (the default) |
+| `buyer_paid` | The buyer already paid you for delivery |
+| `merchant_wallet` | Taken from your UrbnBox wallet when you book. If the wallet is short, the order waits until you top up |
+| `merchant_cod` | Taken out of your next cash-on-delivery remittance |
+
+Contract customers can also be invoiced monthly.
+
+## Cash on delivery
+
+Cash a driver collects for your goods is paid back to you the next morning, for the day up to the 16:00 cut-off, less any fees you owe. You can see each remittance on the portal's **Billing** page.

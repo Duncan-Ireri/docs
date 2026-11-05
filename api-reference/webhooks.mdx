@@ -1,0 +1,57 @@
+---
+title: "Webhooks"
+description: "Get signed events when your orders move, instead of polling."
+---
+
+Add an HTTPS endpoint with `POST /api/v2/webhooks` or under **Webhooks** on the portal's Integrations page. Both manage the same list. The signing secret is shown once, when you add the endpoint.
+
+## Events
+
+| Event | Sent when |
+| --- | --- |
+| `order.booked` | An order is accepted |
+| `order.scheduled` | It is on a dispatched trip |
+| `order.in_progress` | It has been picked up |
+| `order.completed` | Every drop is done |
+| `order.failed` | It could not be delivered |
+| `order.cancelled` | It was cancelled |
+| `stop.completed` | One stop is done |
+| `cod.remitted` | A cash-on-delivery remittance was paid to you |
+
+Leave `events` out to get all of them.
+
+## Delivery
+
+UrbnBox POSTs JSON to your endpoint with these headers:
+
+```http
+UrbnBox-Event: order.completed
+UrbnBox-Event-Id: 6a1f...
+UrbnBox-Timestamp: 1767600000
+UrbnBox-Signature: v1=5d41402abc4b2a76b9719d911017c592...
+```
+
+Answer with any `2xx` within a few seconds. Failed deliveries are retried with growing gaps. Use `UrbnBox-Event-Id` to ignore a repeat.
+
+## Check the signature
+
+The signature is an HMAC-SHA256, in hex, of the timestamp, a full stop and the raw request body, keyed with your signing secret.
+
+```js
+import crypto from 'node:crypto';
+
+function verify(rawBody, headers, secret) {
+  const ts = headers['urbnbox-timestamp'];
+  const sent = (headers['urbnbox-signature'] || '').replace(/^v1=/, '');
+  const expected = crypto.createHmac('sha256', secret).update(`${ts}.${rawBody}`).digest('hex');
+  const fresh = Math.abs(Date.now() / 1000 - Number(ts)) < 300;
+  return fresh && sent.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(sent), Buffer.from(expected));
+}
+```
+
+Verify against the raw bytes before parsing the JSON, and reject timestamps more than five minutes old.
+
+## Switch an endpoint off
+
+`DELETE /api/v2/webhooks/{id}` stops deliveries. The endpoint's history is kept.

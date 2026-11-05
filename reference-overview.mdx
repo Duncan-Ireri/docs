@@ -1,56 +1,50 @@
 ---
 title: "API reference overview"
-description: "Understand the UrbnBox integration API base URL, conventions, and endpoint groups."
+description: "Base URL, keys, conventions and endpoint groups for UrbnBox API v2."
 ---
 
-The reference covers every route intended for external integrations in the
-current UrbnBox server.
+Every endpoint is under one base URL:
 
 ```text
-https://portal.urbnbox.io
+https://portal.urbnbox.io/api/v2
 ```
+
+There is no v1. If you are moving an older integration, start with [Moving from v1](/guides/migrating-from-v1).
 
 ## Endpoint groups
 
-| Group | Authentication | Who uses it | Purpose |
-| --- | --- | --- | --- |
-| Delivery orders (Vendor API) | `X-API-Key` (`ubx_…`) | Vendors | Delivery orders, CSV validation, webhooks, earnings |
-| Pickup-point shipments (Vendor API) | `X-API-Key` (`ubx_…`) | Vendors | Parcels between pickup points |
-| Pickup-point shipments (Partner API) | `X-API-Key` (`ub_live_…`) | Partners | Quotes, shipments, pickup-point availability, and checkout sessions |
-| Pickup-point bookings | Publishable key (`ubp_live_…`) | Browser widgets | Pickup-point selection and booking |
-| Store discovery | None | Anyone | Active store and nearby-store lookup |
-| Shopify callbacks | Shopify HMAC | Shopify (signed by Shopify) | Carrier rates and paid-order ingestion |
+| Group | Key | Purpose |
+| --- | --- | --- |
+| Quotes | Secret (`dk_`) | Price an order before booking it |
+| Orders | Secret (`dk_`) | Book, batch, check a CSV, list, read, cancel, return |
+| Stock and invoices | Secret (`dk_`) | Goods UrbnBox holds for you, and monthly invoices |
+| Webhooks | Secret (`dk_`) | Endpoints that receive signed events |
+| Checkout | Publishable (`dpk_`) | Delivery prices for the checkout widget, from allowlisted websites |
+| Public | None | UrbnBox outlets |
+| Shopify callbacks | Shopify signature | Rates and paid orders, called by Shopify |
 
-<Note>
-  Not sure whether you need the Partner API or Vendor API? See [Partners and
-  vendors](/concepts/partners-and-vendors).
-</Note>
+## Conventions
 
-## Request conventions
-
-Send JSON bodies with `Content-Type: application/json`. Shipment dates use
-`YYYY-MM-DD`; order times such as `scheduled_at` use RFC 3339. Money fields
-ending in `_kes` (requests) or `KES` (order responses) contain whole KES
-amounts.
-
-The Partner API is versioned under `/api/partner/v1`. The Vendor API is
-versioned under `/api/vendor/v1`. Public booking routes are not versioned.
+- Send JSON with `Content-Type: application/json`. Field names are snake_case.
+- Unknown fields are refused, so a misspelt field fails loudly instead of being ignored.
+- Amounts are whole KES and end in `_kes`. Times are RFC 3339.
+- `reference` is your own order number. It is unique per account and makes booking safe to retry.
+- Lists come back wrapped: `{"orders": [...]}`, `{"stock": [...]}`.
 
 ## Errors
 
-Some endpoints return JSON errors. Others return a plain-text error body.
-Always branch on the HTTP status before decoding the response.
+Every error has the same shape:
 
-| Status | Meaning |
-| --- | --- |
-| `400` | Invalid JSON, date, query parameter, or required field |
-| `401` | Missing, invalid, or inactive credential |
-| `403` | Credential is not authorized for the operation |
-| `404` | The resource does not exist for this account |
-| `422` | No pickup-point lockers are available for the requested shipment |
-| `500` | UrbnBox could not complete the request |
+```json
+{ "error": { "code": "rejected", "message": "only orders not yet dispatched can be cancelled; this one is scheduled" } }
+```
 
-<Tip>
-  Use a stable `external_reference` for each order. Store the UrbnBox resource
-  ID with the order so you can reconcile and retrieve it later.
-</Tip>
+| Status | Code | Meaning |
+| --- | --- | --- |
+| `400` | `bad_request` | Not valid JSON, or a field the endpoint doesn't know |
+| `401` | `unauthorized` | Missing, unknown or switched-off key |
+| `403` | `forbidden` | Publishable key used from a website not on its list |
+| `404` | `not_found` | No such quote, order or webhook on your account |
+| `422` | `rejected` | A business rule said no. The message is written for people and safe to show |
+| `429` | `rate_limited` | Slow down and retry |
+| `500` | `internal` | Retry with the same `reference` |

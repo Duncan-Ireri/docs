@@ -1,54 +1,48 @@
 ---
 title: "Authentication"
-description: "Authenticate UrbnBox server-side and browser-side API requests."
+description: "Secret and publishable keys for API v2, test and live, and what the errors mean."
 ---
 
-UrbnBox accepts API keys in the `X-API-Key` header.
-
-```http
-X-API-Key: ub_test_your_secret_key
-```
+API v2 uses two kinds of key. Make both under **Integrations** in the UrbnBox portal. Each is shown once, when you create it.
 
 ## Secret keys
 
-Use a secret key for calls from your backend. Secret keys can create shipments
-and access partner-owned resources.
+A secret key (`dk_test_...` or `dk_live_...`) belongs on your server. It can call every route in the API for your account: quotes, orders, stock, invoices and webhooks.
 
-Test secret keys begin with `ub_test_`. Live secret keys begin with `ub_live_`.
+Send it in either header:
 
-Vendor console API keys (created under **Integrations** in the vendor
-dashboard) begin with `ubx_` and have no test/live segment.
+```http
+X-API-Key: dk_live_...
+```
+
+```http
+Authorization: Bearer dk_live_...
+```
 
 <Warning>
-  Never expose a secret key in HTML, client-side JavaScript, a mobile
-  application, logs, or source control.
+  Never put a secret key in HTML, browser JavaScript, a mobile app, logs or source control. Keep it in your platform's secret store or an environment variable.
 </Warning>
-
-Store the key in your deployment platform's secret manager or an environment
-variable.
-
-```bash
-export URBNBOX_API_KEY="ub_test_your_secret_key"
-```
 
 ## Publishable keys
 
-Use a publishable key only with the checkout widget and public locker-booking
-endpoints. Test publishable keys begin with `ubp_test_`. Live publishable keys
-begin with `ubp_live_`.
+A publishable key (`dpk_test_...` or `dpk_live_...`) is safe in a web page. It can do one thing: ask for checkout delivery prices through the [checkout widget](/guides/checkout-widget), and only from the websites you list on the key. UrbnBox compares each request's `Origin` with that list, so add every site the widget runs on, staging included.
 
-UrbnBox validates the request's `Origin` header against the origins configured
-for the key. Add every checkout origin, including each staging origin, to the
-key's allowlist.
+## Test and live
 
-## Authentication errors
+Test keys always give test quotes and book test orders. Test orders show in the portal but are never dispatched, charged or invoiced, so you can build freely. A new account stays in test mode until UrbnBox approves it; after that you can make live keys.
 
-| Status | Meaning | Action |
+## Keys made before v2
+
+Keys starting `ubx_`, `ubp_` or `ub_live_` still work, on `/api/v2` only, and appear under **Older keys** on the Integrations page. No new ones are issued. See [Moving from v1](/guides/migrating-from-v1).
+
+## Errors
+
+| Status | Code | Meaning |
 | --- | --- | --- |
-| `401` | The key is missing, invalid, or inactive | Check the header and key status |
-| `403` | The key lacks access or is not linked to a partner | Use the correct key type and partner |
+| `401` | `unauthorized` | No key, an unknown or switched-off key, or a publishable key on a server route |
+| `403` | `forbidden` | A publishable key used from a website not on its list |
+| `429` | `rate_limited` | More than 600 requests a minute on one secret key, or too many checkout quotes from one key or one buyer |
 
 <Note>
-  Shopify callbacks use `X-Shopify-Hmac-Sha256` instead of an UrbnBox API key.
-  Shopify generates this signature from the raw request body.
+  Shopify's calls to UrbnBox are signed by Shopify (`X-Shopify-Hmac-Sha256`) and don't use an UrbnBox key.
 </Note>
