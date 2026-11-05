@@ -1,54 +1,52 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.3",
   "info": {
-    "title": "UrbnBox integration API",
-    "version": "1.0.0",
-    "description": "Create and track delivery orders, send parcels between pickup points, and connect Shopify."
+    "title": "UrbnBox API",
+    "version": "2.0.0",
+    "description": "Price and book UrbnBox deliveries. Every endpoint is under /api/v2; the v1 APIs were switched off on 5 November 2026."
   },
   "servers": [
     {
-      "url": "https://portal.urbnbox.io",
-      "description": "UrbnBox production and test-key server"
+      "url": "https://portal.urbnbox.io"
     }
   ],
   "tags": [
     {
-      "name": "Shipments",
-      "description": "Quote, create, and retrieve pickup-point shipments."
+      "name": "Quotes"
     },
     {
-      "name": "Checkout sessions",
-      "description": "Hold lockers for partner checkout sessions."
+      "name": "Orders"
     },
     {
-      "name": "Public bookings",
-      "description": "Create browser-based locker bookings."
+      "name": "Stock and invoices"
     },
     {
-      "name": "Store discovery",
-      "description": "Find active UrbnBox stores."
+      "name": "Webhooks"
     },
     {
-      "name": "Shopify",
-      "description": "Callbacks called by Shopify."
+      "name": "Checkout"
     },
     {
-      "name": "Vendor API",
-      "description": "Vendor-authenticated endpoints for delivery orders, pickup-point shipments and webhooks. All require an X-API-Key header with a vendor key."
+      "name": "Public"
+    },
+    {
+      "name": "Shopify callbacks"
     }
   ],
   "paths": {
-    "/api/partner/v1/shipment-quote": {
+    "/api/v2/quotes": {
       "post": {
         "tags": [
-          "Shipments"
+          "Quotes"
         ],
-        "summary": "Create a shipment quote",
-        "description": "Checks locker availability and returns a fee quote. The origin locker is selected by the server.",
-        "operationId": "createShipmentQuote",
+        "summary": "Create a quote",
+        "description": "Prices an order from your rate card and stores the quote. Valid for 24 hours.",
         "security": [
           {
-            "partnerKey": []
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
           }
         ],
         "requestBody": {
@@ -56,139 +54,82 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ShipmentQuoteRequest"
+                "$ref": "#/components/schemas/QuoteRequest"
               },
               "example": {
-                "destination_city": "Mombasa",
-                "weight_tier": "light",
-                "starts_at": "2026-07-05",
-                "ends_at": "2026-07-08"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Availability and quote result.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/ShipmentQuote"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "available": {
-                          "type": "boolean",
-                          "const": false
-                        }
-                      },
-                      "required": [
-                        "available"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/partner/v1/shipments": {
-      "post": {
-        "tags": [
-          "Shipments"
-        ],
-        "summary": "Create a shipment",
-        "description": "Creates a locker-to-locker shipment. This endpoint requires a secret partner key. The deposit PIN is returned only in this response.",
-        "operationId": "createShipment",
-        "security": [
-          {
-            "partnerKey": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateShipmentRequest"
-              },
-              "example": {
-                "external_reference": "ORDER-1001",
-                "recipient_name": "Jane Mwangi",
-                "recipient_phone": "+254712345678",
-                "origin_city": "Nairobi",
-                "destination_city": "Mombasa",
-                "weight_tier": "light",
-                "starts_at": "2026-07-05",
-                "ends_at": "2026-07-08"
+                "kind": "delivery",
+                "vehicle_class": "rider",
+                "distance_km": 7.5
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Shipment created.",
+            "description": "The quote",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreatedShipment"
+                  "$ref": "#/components/schemas/Quote"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "Not valid JSON, or an unknown field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "No lockers are available for the requested route and dates.",
+            "description": "Refused by a business rule; the message is safe to show",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JSONError"
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/partner/v1/shipments/{id}": {
+    "/api/v2/quotes/{id}": {
       "get": {
         "tags": [
-          "Shipments"
+          "Quotes"
         ],
-        "summary": "Retrieve a shipment",
-        "description": "Returns a shipment owned by the authenticated partner.",
-        "operationId": "getShipment",
+        "summary": "Get a quote",
         "security": [
           {
-            "partnerKey": []
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
           }
         ],
         "parameters": [
@@ -196,7 +137,6 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "Shipment ID returned during creation.",
             "schema": {
               "type": "string"
             }
@@ -204,88 +144,51 @@
         ],
         "responses": {
           "200": {
-            "description": "Current shipment details.",
+            "description": "The quote",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Shipment"
+                  "$ref": "#/components/schemas/Quote"
                 }
               }
             }
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/partner/v1/locker-availability": {
-      "get": {
-        "tags": [
-          "Checkout sessions"
-        ],
-        "summary": "List locker availability",
-        "description": "Returns active locker spaces available for partner checkout.",
-        "operationId": "listLockerAvailability",
-        "security": [
-          {
-            "partnerKey": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Available locker spaces.",
+            "description": "Not found on your account",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/LockerSpace"
-                  }
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
           }
         }
       }
     },
-    "/api/partner/v1/checkout-sessions": {
+    "/api/v2/orders": {
       "post": {
         "tags": [
-          "Checkout sessions"
+          "Orders"
         ],
-        "summary": "Create a checkout session",
-        "description": "Creates a partner checkout session and holds a locker. Supply an Idempotency-Key when retrying a request.",
-        "operationId": "createCheckoutSession",
+        "summary": "Book an order",
+        "description": "Books one order against a quote. Repeating a reference returns the order already booked.",
         "security": [
           {
-            "partnerKey": []
-          }
-        ],
-        "parameters": [
+            "SecretKey": []
+          },
           {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": false,
-            "description": "Stable key used to prevent duplicate sessions.",
-            "schema": {
-              "type": "string"
-            }
+            "BearerKey": []
           }
         ],
         "requestBody": {
@@ -293,554 +196,87 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+                "$ref": "#/components/schemas/OrderRequest"
+              },
+              "example": {
+                "quote_id": "4f1c2b0e-...",
+                "reference": "ORDER-1001",
+                "recipient": {
+                  "name": "Jane Mwangi",
+                  "phone": "+254712345678",
+                  "address": "Kilimani, Nairobi"
+                },
+                "description": "2 cartons",
+                "collect_kes": 2400
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Checkout session created.",
+            "description": "The order",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckoutSession"
+                  "$ref": "#/components/schemas/Order"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/partner/v1/checkout-sessions/{id}": {
-      "get": {
-        "tags": [
-          "Checkout sessions"
-        ],
-        "summary": "Retrieve a checkout session",
-        "description": "Returns a checkout session owned by the authenticated partner.",
-        "operationId": "getCheckoutSession",
-        "security": [
-          {
-            "partnerKey": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Checkout session details.",
+            "description": "Not valid JSON, or an unknown field",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckoutSession"
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/partner/v1/checkout-sessions/{id}/cancel": {
-      "post": {
-        "tags": [
-          "Checkout sessions"
-        ],
-        "summary": "Cancel a checkout session",
-        "description": "Cancels a partner checkout session.",
-        "operationId": "cancelCheckoutSession",
-        "security": [
-          {
-            "partnerKey": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Session cancelled.",
+            "description": "Missing, unknown or switched-off key",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "const": "cancelled"
-                    }
-                  },
-                  "required": [
-                    "status"
-                  ]
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/public/stores": {
-      "get": {
-        "tags": [
-          "Store discovery"
-        ],
-        "summary": "List public stores",
-        "description": "Returns active stores and their available capacity.",
-        "operationId": "listPublicStores",
-        "security": [],
-        "responses": {
-          "200": {
-            "description": "Active public stores.",
+          "422": {
+            "description": "Refused by a business rule; the message is safe to show",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicStore"
-                  }
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/public/stores/nearby": {
-      "get": {
-        "tags": [
-          "Store discovery"
-        ],
-        "summary": "Find nearby stores",
-        "description": "Returns stores within a radius of a geographic coordinate.",
-        "operationId": "findNearbyStores",
-        "security": [],
-        "parameters": [
-          {
-            "name": "lat",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "format": "double"
-            }
-          },
-          {
-            "name": "lng",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "number",
-              "format": "double"
-            }
-          },
-          {
-            "name": "radius",
-            "in": "query",
-            "required": false,
-            "description": "Search radius in metres. Defaults to 5000.",
-            "schema": {
-              "type": "number",
-              "format": "double",
-              "default": 5000
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Nearby public stores.",
+          "429": {
+            "description": "Rate limited",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicStore"
-                  }
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/public/locker-bookings/options": {
-      "get": {
-        "tags": [
-          "Public bookings"
-        ],
-        "summary": "List public booking options",
-        "description": "Returns locker spaces for the browser checkout widget.",
-        "operationId": "listPublicBookingOptions",
-        "security": [
-          {
-            "publishableKey": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Available spaces.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/LockerSpace"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/public/locker-bookings": {
-      "post": {
-        "tags": [
-          "Public bookings"
-        ],
-        "summary": "Create a public locker booking",
-        "description": "Creates the locker booking used by the checkout widget.",
-        "operationId": "createPublicLockerBooking",
-        "security": [
-          {
-            "publishableKey": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreatePublicBookingRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Booking created.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string"
-                    },
-                    "confirmation_url": {
-                      "type": "string",
-                      "example": "/b/public-token"
-                    }
-                  },
-                  "required": [
-                    "token",
-                    "confirmation_url"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/integrations/shopify/carrier-rates": {
-      "post": {
-        "tags": [
-          "Shopify"
-        ],
-        "summary": "Get Shopify carrier rates",
-        "description": "Shopify calls this endpoint to request an UrbnBox shipping rate. The callback URL is provisioned by UrbnBox with a signed partner-bound token.",
-        "operationId": "shopifyCarrierRates",
-        "security": [
-          {
-            "shopifyCarrierPartner": [],
-            "shopifyCarrierToken": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "A Shopify rates envelope. The rates array is empty when service is unavailable.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "rates": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/ShopifyRate"
-                      }
-                    }
-                  },
-                  "required": [
-                    "rates"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/integrations/shopify/orders-paid": {
-      "post": {
-        "tags": [
-          "Shopify"
-        ],
-        "summary": "Process a paid Shopify order",
-        "description": "Creates an UrbnBox shipment for a connected Shopify store when a paid order selected UrbnBox delivery.",
-        "operationId": "shopifyOrderPaid",
-        "security": [
-          {
-            "shopifyHmac": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "X-Shopify-Shop-Domain",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "example-store.myshopify.com"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Acknowledgement. Successful creation includes a shipment ID and tracking URL.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "shipment_id": {
-                      "type": "string"
-                    },
-                    "tracking_url": {
-                      "type": "string",
-                      "format": "uri"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/api/vendor/v1/orders": {
-      "get": {
-        "tags": [
-          "Vendor API"
-        ],
-        "summary": "List orders",
-        "description": "Returns the vendor's orders, newest first. Use `cursor` with the `next_cursor` from the previous response to page through them.",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "page_size",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "enum": [
-                10,
-                25,
-                50,
-                100
-              ],
-              "default": 25
-            },
-            "description": "Orders per page"
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "The `next_cursor` value from the previous response"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Paginated order list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedOrders"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
           }
         }
       },
-      "post": {
-        "tags": [
-          "Vendor API"
-        ],
-        "summary": "Create a delivery order",
-        "description": "Creates a delivery or pickup order for products in the vendor's UrbnBox catalogue and reserves their stock. When `external_reference` matches an existing order, that order is returned instead of a new one (still `201`).",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrderInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Order created, or the existing order with the same external_reference",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VendorOrder"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/api/vendor/v1/shipments": {
       "get": {
         "tags": [
-          "Vendor API"
+          "Orders"
         ],
-        "summary": "List shipments",
+        "summary": "List orders",
+        "description": "Newest first.",
         "security": [
           {
-            "ApiKeyAuth": []
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
           }
         ],
         "parameters": [
@@ -848,155 +284,37 @@
             "name": "status",
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "booked",
+                "scheduled",
+                "in_progress",
+                "completed",
+                "failed",
+                "cancelled"
+              ]
             }
           },
           {
-            "name": "page",
+            "name": "limit",
             "in": "query",
             "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 25
+              "type": "integer"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Paginated shipment list"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Vendor API"
-        ],
-        "summary": "Create shipment",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Shipment created"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/api/vendor/v1/orders/csv-template": {
-      "get": {
-        "tags": ["Vendor API"],
-        "summary": "Download orders CSV template",
-        "description": "Returns `urbnbox-orders-template.csv` — a pre-formatted CSV with correct headers and two example rows. No authentication required. Fill it in, then POST to `/api/vendor/v1/orders/import-csv`.\n\n**Column order (do not change):**\n\n| # | Column | Required | Notes |\n|---|--------|----------|-------|\n| 1 | `external_reference` | Yes | Your order ID — used for idempotency |\n| 2 | `client_name` | Yes | Recipient full name |\n| 3 | `client_phone` | Yes | Kenyan number (`07xx` or `+254xx`) |\n| 4 | `description` | Yes | Item description |\n| 5 | `quantity` | Yes | Positive integer |\n| 6 | `unit_price_kes` | Yes | Price in KES, e.g. `1500` |\n| 7 | `pickup_type` | Yes | `delivery` or `locker` |\n\n**Example file contents:**\n\n```csv\nexternal_reference,client_name,client_phone,description,quantity,unit_price_kes,pickup_type\nORD-001,Jane Doe,0712345678,Blue hoodie size M,2,1500,delivery\nORD-002,John Smith,0798765432,Running shoes size 42,1,4500,locker\n```",
-        "x-codeSamples": [
-          {
-            "lang": "Shell",
-            "label": "curl",
-            "source": "curl -O -J https://api.urbnbox.com/api/vendor/v1/orders/csv-template"
-          },
-          {
-            "lang": "Python",
-            "label": "Python",
-            "source": "import requests\n\nresp = requests.get('https://api.urbnbox.com/api/vendor/v1/orders/csv-template')\nwith open('urbnbox-orders-template.csv', 'wb') as f:\n    f.write(resp.content)\nprint('Template saved.')"
-          },
-          {
-            "lang": "JavaScript",
-            "label": "Node.js",
-            "source": "const fs = require('fs');\nconst https = require('https');\n\nhttps.get('https://api.urbnbox.com/api/vendor/v1/orders/csv-template', (res) => {\n  res.pipe(fs.createWriteStream('urbnbox-orders-template.csv'));\n  res.on('end', () => console.log('Template saved.'));\n});"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "CSV template file — save and open in Excel or Google Sheets",
-            "content": {
-              "text/csv": {
-                "schema": {"type": "string"},
-                "example": "external_reference,client_name,client_phone,description,quantity,unit_price_kes,pickup_type\nORD-001,Jane Doe,0712345678,Blue hoodie size M,2,1500,delivery\nORD-002,John Smith,0798765432,Running shoes size 42,1,4500,locker"
-              }
-            },
-            "headers": {
-              "Content-Disposition": {
-                "schema": {"type": "string"},
-                "example": "attachment; filename=\"urbnbox-orders-template.csv\""
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/vendor/v1/orders/import-csv": {
-      "post": {
-        "tags": ["Vendor API"],
-        "summary": "Bulk import orders via CSV",
-        "description": "Upload a CSV file to validate and preview order creation. Returns a row-by-row result — valid rows and any errors. Use `/api/vendor/v1/orders/csv-template` to download the correct format first.\n\n**Note:** This endpoint validates and returns results; it does not create orders automatically. Use the JSON `/api/vendor/v1/orders/bulk` endpoint to actually create orders, or use the vendor dashboard UI for a guided import flow.",
-        "security": [{"ApiKeyAuth": []}],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": ["file"],
-                "properties": {
-                  "file": {"type": "string", "format": "binary", "description": "CSV file. First row must be the header row."}
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Validation result with per-row status",
+            "description": "Orders",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "valid_count": {"type": "integer", "description": "Number of rows that passed validation"},
-                    "error_count": {"type": "integer", "description": "Number of rows with errors"},
-                    "total_count": {"type": "integer"},
-                    "rows": {
+                    "orders": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "row_num": {"type": "integer"},
-                          "external_reference": {"type": "string"},
-                          "client_name": {"type": "string"},
-                          "client_phone": {"type": "string"},
-                          "description": {"type": "string"},
-                          "quantity": {"type": "integer"},
-                          "unit_price_kes": {"type": "integer"},
-                          "pickup_type": {"type": "string"},
-                          "error": {"type": "string", "description": "Only present if this row failed validation"}
-                        }
+                        "$ref": "#/components/schemas/Order"
                       }
                     }
                   }
@@ -1004,137 +322,32 @@
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"}
-        }
-      }
-    },
-    "/api/vendor/v1/shipments/csv-template": {
-      "get": {
-        "tags": ["Vendor API"],
-        "summary": "Download shipments CSV template",
-        "description": "Returns `urbnbox-shipments-template.csv` — a pre-formatted CSV with correct headers and two example rows. No authentication required. Fill it in, then POST to `/api/vendor/v1/shipments/import-csv`.\n\n**Column order (do not change):**\n\n| # | Column | Required | Notes |\n|---|--------|----------|-------|\n| 1 | `external_reference` | Yes | Your shipment ID — used for idempotency |\n| 2 | `recipient_name` | Yes | Full name of recipient |\n| 3 | `recipient_phone` | Yes | Kenyan number (`07xx` or `+254xx`) |\n| 4 | `origin_city` | Yes | e.g. `Nairobi` |\n| 5 | `destination_city` | Yes | e.g. `Mombasa` |\n| 6 | `weight_tier` | Yes | `small`, `medium`, or `large` |\n\n**Weight tiers:** `small` = up to 5 kg · `medium` = 5–15 kg · `large` = 15–30 kg\n\n**Example file contents:**\n\n```csv\nexternal_reference,recipient_name,recipient_phone,origin_city,destination_city,weight_tier\nSHIP-001,Alice Mwangi,0712345678,Nairobi,Mombasa,small\nSHIP-002,Bob Otieno,0798765432,Kisumu,Nairobi,medium\n```",
-        "x-codeSamples": [
-          {
-            "lang": "Shell",
-            "label": "curl",
-            "source": "curl -O -J https://api.urbnbox.com/api/vendor/v1/shipments/csv-template"
-          },
-          {
-            "lang": "Python",
-            "label": "Python",
-            "source": "import requests\n\nresp = requests.get('https://api.urbnbox.com/api/vendor/v1/shipments/csv-template')\nwith open('urbnbox-shipments-template.csv', 'wb') as f:\n    f.write(resp.content)\nprint('Template saved.')"
-          },
-          {
-            "lang": "JavaScript",
-            "label": "Node.js",
-            "source": "const fs = require('fs');\nconst https = require('https');\n\nhttps.get('https://api.urbnbox.com/api/vendor/v1/shipments/csv-template', (res) => {\n  res.pipe(fs.createWriteStream('urbnbox-shipments-template.csv'));\n  res.on('end', () => console.log('Template saved.'));\n});"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "CSV template file — save and open in Excel or Google Sheets",
-            "content": {
-              "text/csv": {
-                "schema": {"type": "string"},
-                "example": "external_reference,recipient_name,recipient_phone,origin_city,destination_city,weight_tier\nSHIP-001,Alice Mwangi,0712345678,Nairobi,Mombasa,small\nSHIP-002,Bob Otieno,0798765432,Kisumu,Nairobi,medium"
-              }
-            },
-            "headers": {
-              "Content-Disposition": {
-                "schema": {"type": "string"},
-                "example": "attachment; filename=\"urbnbox-shipments-template.csv\""
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/vendor/v1/shipments/import-csv": {
-      "post": {
-        "tags": ["Vendor API"],
-        "summary": "Bulk import shipments via CSV",
-        "description": "Upload a CSV file to validate shipment rows. Returns per-row results. Use `/api/vendor/v1/shipments/csv-template` to download the correct format first.",
-        "security": [{"ApiKeyAuth": []}],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": ["file"],
-                "properties": {
-                  "file": {"type": "string", "format": "binary"}
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Validation result with per-row status",
+          "401": {
+            "description": "Missing, unknown or switched-off key",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "valid_count": {"type": "integer"},
-                    "error_count": {"type": "integer"},
-                    "total_count": {"type": "integer"},
-                    "rows": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "row": {"type": "integer"},
-                          "external_reference": {"type": "string"},
-                          "recipient_name": {"type": "string"},
-                          "recipient_phone": {"type": "string"},
-                          "origin_city": {"type": "string"},
-                          "destination_city": {"type": "string"},
-                          "weight_tier": {"type": "string"},
-                          "error": {"type": "string"}
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
-          },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"}
+          }
         }
       }
     },
-    "/api/vendor/v1/webhooks": {
-      "get": {
-        "tags": [
-          "Vendor API"
-        ],
-        "summary": "List webhooks",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of configured webhooks"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      },
+    "/api/v2/orders/batch": {
       "post": {
         "tags": [
-          "Vendor API"
+          "Orders"
         ],
-        "summary": "Create webhook",
+        "summary": "Book a batch",
+        "description": "Up to 500 orders. Each is booked or refused on its own.",
         "security": [
           {
-            "ApiKeyAuth": []
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
           }
         ],
         "requestBody": {
@@ -1144,18 +357,14 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "url",
-                  "events"
+                  "orders"
                 ],
                 "properties": {
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  },
-                  "events": {
+                  "orders": {
                     "type": "array",
+                    "maxItems": 500,
                     "items": {
-                      "type": "string"
+                      "$ref": "#/components/schemas/OrderRequest"
                     }
                   }
                 }
@@ -1164,27 +373,715 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "Webhook created"
+          "200": {
+            "description": "One result per order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "reference": {
+                            "type": "string"
+                          },
+                          "order": {
+                            "$ref": "#/components/schemas/Order"
+                          },
+                          "error": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "Not valid JSON, or an unknown field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused by a business rule; the message is safe to show",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/vendor/v1/webhooks/{id}": {
-      "delete": {
+    "/api/v2/orders/validate": {
+      "post": {
         "tags": [
-          "Vendor API"
+          "Orders"
         ],
-        "summary": "Delete webhook",
+        "summary": "Check a CSV",
+        "description": "Checks an orders CSV and books nothing. Columns: reference, drop_name, drop_phone, drop_address, collect_goods_kes (optional).",
         "security": [
           {
-            "ApiKeyAuth": []
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string"
+              },
+              "example": "reference,drop_name,drop_phone,drop_address,collect_goods_kes\nORDER-2001,Jane Mwangi,0712345678,Kilimani,2400\n"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rows": {
+                      "type": "integer"
+                    },
+                    "valid": {
+                      "type": "boolean"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "row": {
+                            "type": "integer"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not valid JSON, or an unknown field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused by a business rule; the message is safe to show",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orders/{id}": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Get an order",
+        "security": [
+          {
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found on your account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Cancel an order",
+        "description": "Only while the order is still booked.",
+        "security": [
+          {
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The cancelled order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found on your account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused by a business rule; the message is safe to show",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orders/{id}/return": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Book a return",
+        "description": "Books the return trip, priced by your return rate.",
+        "security": [
+          {
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "reason": "Wrong size"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The return order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found on your account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused by a business rule; the message is safe to show",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/stock": {
+      "get": {
+        "tags": [
+          "Stock and invoices"
+        ],
+        "summary": "List stock",
+        "description": "Goods UrbnBox holds for you.",
+        "security": [
+          {
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stock",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "stock": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "sku": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "on_hand": {
+                            "type": "integer"
+                          },
+                          "reserved": {
+                            "type": "integer"
+                          },
+                          "available": {
+                            "type": "integer"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/invoices": {
+      "get": {
+        "tags": [
+          "Stock and invoices"
+        ],
+        "summary": "List invoices",
+        "description": "Monthly invoices for contract customers.",
+        "security": [
+          {
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "invoices": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "number": {
+                            "type": "string"
+                          },
+                          "period_start": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "period_end": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "total_kes": {
+                            "type": "integer"
+                          },
+                          "issued_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "lines": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "order_id": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "description": {
+                                  "type": "string"
+                                },
+                                "amount_kes": {
+                                  "type": "integer"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/webhooks": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Add a webhook",
+        "description": "The signing secret is returned once.",
+        "security": [
+          {
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Must be https"
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "order.booked",
+                        "order.scheduled",
+                        "order.in_progress",
+                        "order.completed",
+                        "order.failed",
+                        "order.cancelled",
+                        "stop.completed",
+                        "cod.remitted"
+                      ]
+                    },
+                    "description": "Leave out for every event"
+                  }
+                }
+              },
+              "example": {
+                "url": "https://example.com/webhooks/urbnbox",
+                "events": [
+                  "order.completed",
+                  "order.failed"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The endpoint and its secret",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Webhook"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "signing_secret": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not valid JSON, or an unknown field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused by a business rule; the message is safe to show",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "List webhooks",
+        "security": [
+          {
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endpoints",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "webhooks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Webhook"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused by a business rule; the message is safe to show",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/webhooks/{id}": {
+      "delete": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Switch a webhook off",
+        "security": [
+          {
+            "SecretKey": []
+          },
+          {
+            "BearerKey": []
           }
         ],
         "parameters": [
@@ -1199,49 +1096,304 @@
         ],
         "responses": {
           "204": {
-            "description": "Webhook deleted"
+            "description": "Switched off"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "description": "Missing, unknown or switched-off key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "404": {
-            "$ref": "#/components/responses/NotFound"
+            "description": "Not found on your account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/vendor/v1/earnings": {
+    "/api/v2/public/quotes": {
+      "post": {
+        "tags": [
+          "Checkout"
+        ],
+        "summary": "Checkout delivery quote",
+        "description": "Called by the checkout widget from the buyer's browser. The publishable key must list the request's Origin. Vehicle comes from cart weight (up to 120 kg by motorbike, up to 1,000 kg by van).",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "lat",
+                  "lng"
+                ],
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "description": "Publishable key, dpk_"
+                  },
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  },
+                  "weight_kg": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "address": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "key": "dpk_test_...",
+                "lat": -1.2905,
+                "lng": 36.786,
+                "weight_kg": 2.5,
+                "address": "Kilimani, Nairobi"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A price, or why there isn't one",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "covered": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "When not covered"
+                    },
+                    "quote_id": {
+                      "type": "string"
+                    },
+                    "fee_kes": {
+                      "type": "integer"
+                    },
+                    "vehicle_class": {
+                      "type": "string"
+                    },
+                    "distance_km": {
+                      "type": "number"
+                    },
+                    "expires_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "test": {
+                      "type": "boolean"
+                    },
+                    "delivery_promise": {
+                      "type": "string"
+                    },
+                    "notices": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not valid JSON, or an unknown field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Key not allowed from this website",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Refused by a business rule; the message is safe to show",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/public/stores": {
       "get": {
         "tags": [
-          "Vendor API"
+          "Public"
         ],
-        "summary": "Get earnings summary",
-        "description": "Returns the authenticated vendor's ledger balance and recent payout history.",
-        "security": [
+        "summary": "List outlets",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Active UrbnBox outlets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Store"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/public/stores/nearby": {
+      "get": {
+        "tags": [
+          "Public"
+        ],
+        "summary": "Outlets near a point",
+        "security": [],
+        "parameters": [
           {
-            "ApiKeyAuth": []
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "radius",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 5000
+            },
+            "description": "Metres"
           }
         ],
         "responses": {
           "200": {
-            "description": "Earnings summary"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "description": "Outlets within the radius",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Store"
+                  }
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/vendor/v1/shipment-quote": {
+    "/integrations/shopify/carrier-rates": {
       "post": {
         "tags": [
-          "Vendor API"
+          "Shopify callbacks"
         ],
-        "summary": "Get a shipment quote",
-        "description": "Returns a price quote for a shipment without creating it.",
-        "security": [
+        "summary": "Shopify carrier rates",
+        "description": "Called by Shopify at checkout through the signed callback URL UrbnBox registers. Returns UrbnBox door delivery when the address is in the Nairobi metro area, or no rates.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rates in Shopify's format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/shopify/orders-paid": {
+      "post": {
+        "tags": [
+          "Shopify callbacks"
+        ],
+        "summary": "Shopify paid order",
+        "description": "Shopify's orders/paid webhook, verified with X-Shopify-Hmac-Sha256. Books the order once; retries are ignored.",
+        "security": [],
+        "parameters": [
           {
-            "ApiKeyAuth": []
+            "name": "X-Shopify-Hmac-Sha256",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1250,39 +1402,17 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "origin_city",
-                  "destination_city"
-                ],
-                "properties": {
-                  "origin_city": {
-                    "type": "string"
-                  },
-                  "destination_city": {
-                    "type": "string"
-                  },
-                  "weight_tier": {
-                    "type": "string",
-                    "enum": [
-                      "light",
-                      "medium",
-                      "heavy"
-                    ]
-                  }
-                }
+                "additionalProperties": true
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Quote result"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "Received"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "description": "Bad signature"
           }
         }
       }
@@ -1290,822 +1420,450 @@
   },
   "components": {
     "securitySchemes": {
-      "ApiKeyAuth": {
+      "SecretKey": {
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key",
-        "description": "Vendor API key. Keys begin with the ubx_ prefix and identify vendor accounts."
+        "description": "Secret key, dk_test_ or dk_live_"
       },
-      "partnerKey": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-API-Key",
-        "description": "Partner key. Shipment creation requires a secret key."
-      },
-      "publishableKey": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-API-Key",
-        "description": "Publishable key restricted to allowed browser origins."
-      },
-      "shopifyCarrierPartner": {
-        "type": "apiKey",
-        "in": "query",
-        "name": "partner",
-        "description": "Partner identifier embedded in the callback URL provisioned by UrbnBox."
-      },
-      "shopifyCarrierToken": {
-        "type": "apiKey",
-        "in": "query",
-        "name": "token",
-        "description": "Signed carrier callback token provisioned by UrbnBox. Merchants do not configure this value manually."
-      },
-      "shopifyHmac": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-Shopify-Hmac-Sha256",
-        "description": "Base64-encoded HMAC-SHA256 signature generated by Shopify."
+      "BearerKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "The same secret key as a bearer token"
       }
     },
     "schemas": {
-      "ShipmentQuoteRequest": {
+      "Error": {
         "type": "object",
         "properties": {
-          "destination_city": {
-            "type": "string",
-            "example": "Mombasa"
-          },
-          "weight_tier": {
-            "type": "string",
-            "enum": [
-              "light",
-              "medium",
-              "heavy"
-            ]
-          },
-          "starts_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "ends_at": {
-            "type": "string",
-            "format": "date"
-          }
-        },
-        "required": [
-          "destination_city",
-          "weight_tier",
-          "starts_at",
-          "ends_at"
-        ]
-      },
-      "CreateShipmentRequest": {
-        "type": "object",
-        "properties": {
-          "external_reference": {
-            "type": "string",
-            "description": "Your order or fulfillment ID."
-          },
-          "recipient_name": {
-            "type": "string"
-          },
-          "recipient_phone": {
-            "type": "string",
-            "example": "+254712345678"
-          },
-          "origin_city": {
-            "type": "string",
-            "example": "Nairobi"
-          },
-          "destination_city": {
-            "type": "string",
-            "example": "Mombasa"
-          },
-          "weight_tier": {
-            "type": "string",
-            "enum": [
-              "light",
-              "medium",
-              "heavy"
-            ]
-          },
-          "starts_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "ends_at": {
-            "type": "string",
-            "format": "date"
-          }
-        },
-        "required": [
-          "external_reference",
-          "recipient_name",
-          "recipient_phone",
-          "origin_city",
-          "destination_city",
-          "weight_tier",
-          "starts_at",
-          "ends_at"
-        ]
-      },
-      "CreateCheckoutSessionRequest": {
-        "type": "object",
-        "properties": {
-          "external_order_id": {
-            "type": "string"
-          },
-          "space_id": {
-            "type": "string"
-          },
-          "client_name": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string"
-          },
-          "starts_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "ends_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "amount_kes": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          }
-        }
-      },
-      "CreatePublicBookingRequest": {
-        "type": "object",
-        "properties": {
-          "space_id": {
-            "type": "string"
-          },
-          "client_name": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string"
-          },
-          "starts_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "ends_at": {
-            "type": "string",
-            "format": "date"
-          }
-        },
-        "required": [
-          "space_id",
-          "client_name",
-          "phone",
-          "starts_at",
-          "ends_at"
-        ]
-      },
-      "Locker": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "city": {
-            "type": "string"
-          },
-          "address": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "name",
-          "city",
-          "address"
-        ]
-      },
-      "FeeBreakdown": {
-        "type": "object",
-        "properties": {
-          "origin_locker_fee_kes": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "destination_locker_fee_kes": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "transit_rider_fee_kes": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "platform_fee_kes": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "total_kes": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "required": [
-          "origin_locker_fee_kes",
-          "destination_locker_fee_kes",
-          "transit_rider_fee_kes",
-          "platform_fee_kes"
-        ]
-      },
-      "ShipmentQuote": {
-        "type": "object",
-        "properties": {
-          "available": {
-            "type": "boolean",
-            "const": true
-          },
-          "origin_locker": {
-            "$ref": "#/components/schemas/Locker"
-          },
-          "destination_locker": {
-            "$ref": "#/components/schemas/Locker"
-          },
-          "total_kes": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "fee_breakdown": {
-            "$ref": "#/components/schemas/FeeBreakdown"
-          }
-        },
-        "required": [
-          "available",
-          "origin_locker",
-          "destination_locker",
-          "total_kes",
-          "fee_breakdown"
-        ]
-      },
-      "CreatedShipment": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Shipment"
-          },
-          {
+          "error": {
             "type": "object",
             "properties": {
-              "deposit_pin": {
+              "code": {
                 "type": "string",
-                "pattern": "^[0-9]{6}$",
-                "description": "One-time deposit PIN. Store it when creating the shipment."
+                "enum": [
+                  "bad_request",
+                  "unauthorized",
+                  "forbidden",
+                  "not_found",
+                  "rejected",
+                  "rate_limited",
+                  "unavailable",
+                  "internal"
+                ]
               },
-              "deposit_whatsapp_link": {
-                "type": "string",
-                "format": "uri"
-              },
-              "collection_whatsapp_link": {
-                "type": "string",
-                "format": "uri"
+              "message": {
+                "type": "string"
               }
             },
             "required": [
-              "deposit_pin",
-              "deposit_whatsapp_link",
-              "collection_whatsapp_link"
+              "code",
+              "message"
             ]
           }
-        ]
+        }
       },
-      "Shipment": {
+      "QuoteRequest": {
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "delivery",
+              "lane",
+              "hire"
+            ]
+          },
+          "vehicle_class": {
+            "type": "string",
+            "description": "From the rate card",
+            "enum": [
+              "rider",
+              "van",
+              "truck_10t_dry",
+              "reefer_3t",
+              "reefer_5t"
+            ]
+          },
+          "temperature": {
+            "type": "string",
+            "enum": [
+              "dry",
+              "chilled",
+              "frozen"
+            ],
+            "default": "dry"
+          },
+          "city": {
+            "type": "string",
+            "default": "Nairobi",
+            "description": "Delivery"
+          },
+          "distance_km": {
+            "type": "number",
+            "description": "Delivery: road distance"
+          },
+          "drops": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Delivery: number of drops"
+          },
+          "origin_town": {
+            "type": "string",
+            "description": "Lane"
+          },
+          "destination_town": {
+            "type": "string",
+            "description": "Lane"
+          },
+          "hire_period": {
+            "type": "string",
+            "enum": [
+              "half_day",
+              "day"
+            ],
+            "description": "Hire"
+          },
+          "hire_periods": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Hire: how many periods"
+          },
+          "outside_hours": {
+            "type": "boolean",
+            "description": "Adds the out-of-hours surcharge when your card has one"
+          }
+        }
+      },
+      "QuoteLine": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "amount_kes": {
+            "type": "integer"
+          },
+          "rule_type": {
+            "type": "string"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "customer_rate": {
+            "type": "boolean",
+            "description": "True when the line comes from your own rate card"
+          }
+        }
+      },
+      "Quote": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
-          "tracking_token": {
+          "kind": {
             "type": "string"
           },
-          "tracking_url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "status": {
+          "vehicle_class": {
             "type": "string"
           },
-          "origin_locker": {
-            "$ref": "#/components/schemas/Locker"
-          },
-          "destination_locker": {
-            "$ref": "#/components/schemas/Locker"
-          },
-          "fee_breakdown": {
-            "$ref": "#/components/schemas/FeeBreakdown"
-          }
-        },
-        "required": [
-          "id",
-          "tracking_token",
-          "tracking_url",
-          "status",
-          "origin_locker",
-          "destination_locker",
-          "fee_breakdown"
-        ]
-      },
-      "CheckoutSession": {
-        "type": "object",
-        "properties": {
-          "ID": {
+          "temperature": {
             "type": "string"
           },
-          "PartnerID": {
-            "type": "string"
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuoteLine"
+            },
+            "description": "What makes up the total"
           },
-          "ExternalOrderID": {
-            "type": [
-              "string",
-              "null"
-            ]
+          "total_kes": {
+            "type": "integer"
           },
-          "SpaceID": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "ClientName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "Phone": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "StartsAt": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "EndsAt": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "AmountCents": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "format": "int64"
-          },
-          "Status": {
-            "type": "string"
-          },
-          "IdempotencyKey": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "CreatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "UpdatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "ExpiresAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "ID",
-          "PartnerID",
-          "Status",
-          "CreatedAt",
-          "UpdatedAt",
-          "ExpiresAt"
-        ]
-      },
-      "LockerSpace": {
-        "type": "object",
-        "description": "The current Go API serializes this model with exported field names.",
-        "properties": {
-          "ID": {
-            "type": "string"
-          },
-          "StoreID": {
-            "type": "string"
-          },
-          "StoreName": {
-            "type": "string"
-          },
-          "StoreLatitude": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "StoreLongitude": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "Type": {
-            "type": "string"
-          },
-          "Code": {
-            "type": "string"
-          },
-          "DailyRate": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "HourlyRate": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "IsActive": {
+          "test": {
             "type": "boolean"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
           }
-        },
-        "required": [
-          "ID",
-          "StoreID",
-          "StoreName",
-          "Type",
-          "Code",
-          "DailyRate",
-          "HourlyRate",
-          "IsActive"
-        ]
+        }
       },
-      "PublicStore": {
+      "Recipient": {
         "type": "object",
+        "required": [
+          "name",
+          "phone"
+        ],
         "properties": {
-          "id": {
+          "name": {
             "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Kenyan mobile number"
+          },
+          "address": {
+            "type": "string",
+            "description": "Optional when the quote came from the checkout widget"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          }
+        }
+      },
+      "StopInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "name"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "pickup",
+              "drop"
+            ]
           },
           "name": {
+            "type": "string"
+          },
+          "phone": {
             "type": "string"
           },
           "address": {
             "type": "string"
           },
           "lat": {
-            "type": "number",
-            "format": "double"
+            "type": "number"
           },
           "lng": {
-            "type": "number",
-            "format": "double"
+            "type": "number"
           },
-          "locker_count": {
-            "type": "integer"
+          "notes": {
+            "type": "string"
           },
-          "available_lockers": {
-            "type": "integer"
+          "requires_handover_code": {
+            "type": "boolean",
+            "description": "The recipient gets a 4-digit code on WhatsApp"
           },
-          "shelf_count": {
-            "type": "integer"
-          },
-          "has_lockers": {
-            "type": "boolean"
-          },
-          "has_shelves": {
-            "type": "boolean"
+          "collect_goods_kes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Cash for the goods, collected here"
           }
-        },
-        "required": [
-          "id",
-          "name",
-          "address",
-          "lat",
-          "lng",
-          "locker_count",
-          "available_lockers",
-          "shelf_count",
-          "has_lockers",
-          "has_shelves"
-        ]
+        }
       },
-      "ShopifyRate": {
+      "OrderRequest": {
         "type": "object",
+        "required": [
+          "quote_id",
+          "reference"
+        ],
+        "description": "Send either recipient (short form) or stops, not both.",
         "properties": {
-          "service_name": {
-            "type": "string",
-            "example": "UrbnBox Locker Pickup"
+          "quote_id": {
+            "type": "string"
           },
-          "service_code": {
+          "reference": {
             "type": "string",
-            "const": "urbnbox_locker"
+            "description": "Your order number; unique per account, makes booking idempotent"
           },
-          "total_price": {
+          "fee_payer": {
             "type": "string",
-            "description": "whole KES."
+            "enum": [
+              "buyer_on_delivery",
+              "buyer_paid",
+              "merchant_wallet",
+              "merchant_cod"
+            ],
+            "default": "buyer_on_delivery"
           },
-          "currency": {
-            "type": "string",
-            "const": "KES"
-          },
-          "min_delivery_date": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "max_delivery_date": {
-            "type": "string",
-            "format": "date-time"
+          "recipient": {
+            "$ref": "#/components/schemas/Recipient"
           },
           "description": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "service_name",
-          "service_code",
-          "total_price",
-          "currency",
-          "min_delivery_date",
-          "max_delivery_date",
-          "description"
-        ]
-      },
-      "JSONError": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string"
+            "type": "string",
+            "description": "Short form: what is being delivered"
           },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "error",
-          "message"
-        ]
-      },
-      "PaginatedOrders": {
-        "type": "object",
-        "properties": {
-          "data": {
+          "collect_kes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Short form: cash for the goods"
+          },
+          "stops": {
             "type": "array",
+            "minItems": 2,
             "items": {
-              "$ref": "#/components/schemas/VendorOrder"
+              "$ref": "#/components/schemas/StopInput"
             }
           },
-          "page_size": {
+          "notes": {
+            "type": "string"
+          },
+          "hire_starts_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "api",
+              "shopify",
+              "woocommerce",
+              "widget"
+            ]
+          }
+        }
+      },
+      "Stop": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sequence": {
             "type": "integer"
           },
-          "next_cursor": {
-            "type": "string",
-            "description": "Pass as `cursor` for the next page. Empty on the last page"
-          }
-        }
-      },
-      "CreateOrderInput": {
-        "type": "object",
-        "required": [
-          "client_name",
-          "client_phone",
-          "items"
-        ],
-        "properties": {
-          "external_reference": {
-            "type": "string",
-            "description": "Your order ID. A repeat value returns the existing order"
-          },
-          "client_name": {
-            "type": "string",
-            "description": "Customer's full name"
-          },
-          "client_phone": {
-            "type": "string",
-            "description": "Customer's WhatsApp number"
-          },
-          "fulfillment_type": {
-            "type": "string",
-            "enum": [
-              "delivery",
-              "scheduled_delivery",
-              "self_pickup",
-              "scheduled_pickup"
-            ],
-            "default": "delivery"
-          },
-          "address": {
-            "type": "string",
-            "description": "Delivery address. Required for delivery and scheduled_delivery"
-          },
-          "client_lat": {
-            "type": "number",
-            "description": "Delivery latitude. When omitted, the address is geocoded"
-          },
-          "client_lng": {
-            "type": "number",
-            "description": "Delivery longitude"
-          },
-          "scheduled_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Required for scheduled_delivery and scheduled_pickup"
-          },
-          "pickup_name": {
-            "type": "string",
-            "description": "Who collects the order. Required for self_pickup and scheduled_pickup"
-          },
-          "pickup_phone": {
-            "type": "string",
-            "description": "Collector's phone. Required for self_pickup and scheduled_pickup"
-          },
-          "items": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "object",
-              "required": [
-                "product_id",
-                "quantity"
-              ],
-              "properties": {
-                "product_id": {
-                  "type": "string",
-                  "description": "An active product in your UrbnBox catalogue"
-                },
-                "quantity": {
-                  "type": "integer",
-                  "minimum": 1
-                }
-              }
-            }
-          }
-        },
-        "example": {
-          "external_reference": "SHOP-ORDER-1001",
-          "client_name": "Jane Mwangi",
-          "client_phone": "+254712345678",
-          "fulfillment_type": "delivery",
-          "address": "Kenyatta Avenue, Nairobi",
-          "items": [
-            {
-              "product_id": "PRODUCT_ID",
-              "quantity": 2
-            }
-          ]
-        }
-      },
-      "VendorOrder": {
-        "type": "object",
-        "description": "Order fields are returned with capitalised names.",
-        "properties": {
-          "ID": {
+          "kind": {
             "type": "string"
           },
-          "Status": {
+          "status": {
             "type": "string",
             "enum": [
-              "draft",
-              "confirmed",
-              "assigned",
-              "packing",
-              "dispatched",
-              "delivered",
+              "pending",
+              "arrived",
+              "done",
+              "failed"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "collect_kes": {
+            "type": "integer"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "booked",
+              "scheduled",
+              "in_progress",
+              "completed",
+              "failed",
               "cancelled"
             ]
           },
-          "FulfillmentType": {
+          "kind": {
             "type": "string"
           },
-          "ClientName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "ClientPhone": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "Address": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "ClientLat": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "ClientLng": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "ScheduledAt": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "TotalKES": {
-            "type": "integer",
-            "description": "Items plus delivery fee, in whole KES"
-          },
-          "DeliveryFeeKES": {
-            "type": "integer",
-            "description": "Whole KES"
-          },
-          "PublicToken": {
+          "vehicle_class": {
             "type": "string"
           },
-          "IsCOD": {
+          "temperature": {
+            "type": "string"
+          },
+          "quote_id": {
+            "type": "string"
+          },
+          "fee_kes": {
+            "type": "integer"
+          },
+          "fee_payer": {
+            "type": "string"
+          },
+          "fee_paid": {
             "type": "boolean"
           },
-          "CODAmountKES": {
-            "type": [
-              "integer",
-              "null"
-            ]
+          "source": {
+            "type": "string"
           },
-          "CreatedAt": {
+          "test": {
+            "type": "boolean"
+          },
+          "on_hold_reason": {
+            "type": "string",
+            "description": "Set when the order waits, for example on an empty wallet"
+          },
+          "return_of_order_id": {
+            "type": "string"
+          },
+          "tracking_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "created_at": {
             "type": "string",
             "format": "date-time"
           },
-          "UpdatedAt": {
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "stops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Stop"
+            }
+          }
+        }
+      },
+      "Webhook": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "created_at": {
             "type": "string",
             "format": "date-time"
           }
         }
-      }
-    },
-    "responses": {
-      "BadRequest": {
-        "description": "The request body, date, field, or query parameter is invalid.",
-        "content": {
-          "text/plain": {
-            "schema": {
-              "type": "string"
-            }
-          }
-        }
       },
-      "Unauthorized": {
-        "description": "The credential is missing, invalid, or inactive.",
-        "content": {
-          "text/plain": {
-            "schema": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "Forbidden": {
-        "description": "The credential is not authorized for this operation.",
-        "content": {
-          "text/plain": {
-            "schema": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "NotFound": {
-        "description": "The resource does not exist for the authenticated partner.",
-        "content": {
-          "text/plain": {
-            "schema": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "ServerError": {
-        "description": "UrbnBox could not complete the request.",
-        "content": {
-          "text/plain": {
-            "schema": {
-              "type": "string"
-            }
-          }
-        }
+      "Store": {
+        "type": "object",
+        "description": "An UrbnBox outlet",
+        "additionalProperties": true
       }
     }
   }

@@ -1,0 +1,57 @@
+---
+title: "Moving from v1"
+description: "The v1 vendor and partner APIs were switched off. Here is how to move an integration to API v2."
+---
+
+On 5 November 2026 UrbnBox switched off the v1 APIs. Requests to `/api/vendor/v1`, `/api/partner/v1`, `/api/cms/v1`, `/api/v1` and the unversioned `/api/...` routes now return `404`. Everything moved to `/api/v2`.
+
+If your integration still calls a v1 address, this page is the checklist.
+
+## Your key keeps working
+
+Keys made before v2 (starting `ubx_`, `ubp_` or `ub_live_`) still authenticate, on `/api/v2` only. You can change your paths first and swap the key later.
+
+- A vendor key (`ubx_`) acts as a live secret key.
+- A partner key keeps its type and test or live setting. A partner publishable key now only works from the websites listed on it, so ask UrbnBox to add yours, or make a new `dpk_` key.
+
+When you are ready, make a `dk_` key under **Integrations**, deploy it, and switch the old key off from the **Older keys** list on the same page.
+
+## What changes
+
+The biggest difference: every order is booked against a **quote**. Ask for a price with `POST /api/v2/quotes` (or the checkout widget), then book with its `quote_id`. The price on the quote is the price you pay.
+
+| v1 | v2 |
+| --- | --- |
+| `POST /api/vendor/v1/orders` | `POST /api/v2/quotes`, then `POST /api/v2/orders` |
+| `POST /api/vendor/v1/orders/bulk`, `POST /api/partner/v1/orders` | `POST /api/v2/orders/batch` (up to 500) |
+| `POST /api/vendor/v1/orders/import-csv` | `POST /api/v2/orders/validate`, then `/orders/batch`; or upload the CSV on the portal's **Book** page |
+| `GET /api/vendor/v1/orders/csv-template` | Columns are `reference`, `drop_name`, `drop_phone`, `drop_address`, `collect_goods_kes` |
+| `GET /api/vendor/v1/orders`, `/orders/{id}` | `GET /api/v2/orders`, `/api/v2/orders/{id}` |
+| `POST /api/vendor/v1/orders/{id}/cancel` | `POST /api/v2/orders/{id}/cancel` |
+| `POST /api/vendor/v1/returns` | `POST /api/v2/orders/{id}/return` |
+| `/api/vendor/v1/pickups` | Add a `pickup` stop to the order |
+| `GET /api/vendor/v1/products`, `/inventory` | `GET /api/v2/stock` |
+| Creating products, adjusting inventory | UrbnBox records stock as it arrives and leaves; there is no API for it |
+| `GET /api/vendor/v1/invoices` | `GET /api/v2/invoices` |
+| `GET /api/vendor/v1/earnings` | The portal's **Billing** page |
+| `GET /api/vendor/v1/shipping-rates` | `POST /api/v2/quotes` |
+| `/api/vendor/v1/webhooks` | `/api/v2/webhooks` |
+| `/api/cms/v1/...` | `/api/v2/cms/...` |
+| `/api/public/stores`, `/stores/nearby` | `/api/v2/public/stores`, `/api/v2/public/stores/nearby` |
+| Pickup points, shipments, lockers, checkout sessions | Retired with the pickup-point service; no replacement |
+
+## Field changes worth knowing
+
+- JSON is snake_case throughout: `quote_id`, `fee_kes`, `collect_kes`, `created_at`.
+- Your order number goes in `reference`. It must be unique, and repeating it returns the existing order instead of booking twice.
+- Amounts are whole KES and end in `_kes`.
+- Errors are always JSON, `{"error": {"code", "message"}}`. A `422` message is written for people and safe to show.
+- Unknown fields are refused with a `400`, so typos surface straight away.
+
+## Webhooks
+
+Webhooks added through `/api/vendor/v1/webhooks` or the portal's old **Webhooks** page were never delivered, and have not been carried over. Add them again with `POST /api/v2/webhooks` or on the **Integrations** page. Endpoints already listed under **Webhooks** on the Integrations page carry on as they are. Event names changed too: `order.confirmed`, `order.dispatched` and `order.delivered` are now `order.booked`, `order.scheduled`, `order.in_progress` and `order.completed`. See [Webhooks](/api-reference/webhooks) for the signature check.
+
+## Need a hand?
+
+Write to UrbnBox with your account name and the calls you make today, and we will check the mapping with you.

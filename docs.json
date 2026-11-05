@@ -18,14 +18,13 @@
             "group": "Get started",
             "pages": [
               "index",
-              "guides/integration-options",
-              "quickstart"
+              "quickstart",
+              "guides/integration-options"
             ]
           },
           {
-            "group": "Pickup points",
+            "group": "Checkout and stores",
             "pages": [
-              "guides/pickup-point-shipments",
               "guides/checkout-widget",
               "guides/shopify",
               "guides/woocommerce"
@@ -34,8 +33,14 @@
           {
             "group": "Concepts",
             "pages": [
-              "concepts/partners-and-vendors",
+              "concepts/orders-and-quotes",
               "concepts/authentication"
+            ]
+          },
+          {
+            "group": "Upgrading",
+            "pages": [
+              "guides/migrating-from-v1"
             ]
           }
         ]
@@ -47,50 +52,52 @@
         "pages": [
           "reference-overview",
           {
-            "group": "Delivery orders",
+            "group": "Quotes",
             "pages": [
-              "api-reference/vendor/orders",
-              "api-reference/vendor/webhooks",
-              "GET /api/vendor/v1/orders",
-              "POST /api/vendor/v1/orders",
-              "GET /api/vendor/v1/orders/csv-template",
-              "POST /api/vendor/v1/orders/import-csv",
-              "GET /api/vendor/v1/webhooks",
-              "POST /api/vendor/v1/webhooks",
-              "DELETE /api/vendor/v1/webhooks/{id}",
-              "GET /api/vendor/v1/earnings"
+              "POST /api/v2/quotes",
+              "GET /api/v2/quotes/{id}"
             ]
           },
           {
-            "group": "Pickup-point shipments (Vendor API)",
+            "group": "Orders",
             "pages": [
-              "api-reference/vendor/shipments",
-              "GET /api/vendor/v1/shipments",
-              "POST /api/vendor/v1/shipments",
-              "GET /api/vendor/v1/shipments/csv-template",
-              "POST /api/vendor/v1/shipments/import-csv",
-              "POST /api/vendor/v1/shipment-quote"
+              "api-reference/orders",
+              "POST /api/v2/orders",
+              "GET /api/v2/orders",
+              "GET /api/v2/orders/{id}",
+              "POST /api/v2/orders/batch",
+              "POST /api/v2/orders/validate",
+              "POST /api/v2/orders/{id}/cancel",
+              "POST /api/v2/orders/{id}/return"
             ]
           },
           {
-            "group": "Pickup-point shipments (Partner API)",
+            "group": "Stock and invoices",
             "pages": [
-              "POST /api/partner/v1/shipment-quote",
-              "POST /api/partner/v1/shipments",
-              "GET /api/partner/v1/shipments/{id}",
-              "GET /api/partner/v1/locker-availability",
-              "POST /api/partner/v1/checkout-sessions",
-              "GET /api/partner/v1/checkout-sessions/{id}",
-              "POST /api/partner/v1/checkout-sessions/{id}/cancel"
+              "GET /api/v2/stock",
+              "GET /api/v2/invoices"
             ]
           },
           {
-            "group": "Pickup-point bookings (browser)",
+            "group": "Webhooks",
             "pages": [
-              "GET /api/public/stores",
-              "GET /api/public/stores/nearby",
-              "GET /api/public/locker-bookings/options",
-              "POST /api/public/locker-bookings"
+              "api-reference/webhooks",
+              "POST /api/v2/webhooks",
+              "GET /api/v2/webhooks",
+              "DELETE /api/v2/webhooks/{id}"
+            ]
+          },
+          {
+            "group": "Checkout",
+            "pages": [
+              "POST /api/v2/public/quotes"
+            ]
+          },
+          {
+            "group": "Public",
+            "pages": [
+              "GET /api/v2/public/stores",
+              "GET /api/v2/public/stores/nearby"
             ]
           },
           {
@@ -148,5 +155,27 @@
       "cursor",
       "vscode"
     ]
-  }
+  },
+  "redirects": [
+    {
+      "source": "/api-reference/vendor/orders",
+      "destination": "/api-reference/orders"
+    },
+    {
+      "source": "/api-reference/vendor/webhooks",
+      "destination": "/api-reference/webhooks"
+    },
+    {
+      "source": "/api-reference/vendor/shipments",
+      "destination": "/guides/migrating-from-v1"
+    },
+    {
+      "source": "/guides/pickup-point-shipments",
+      "destination": "/guides/migrating-from-v1"
+    },
+    {
+      "source": "/concepts/partners-and-vendors",
+      "destination": "/concepts/authentication"
+    }
+  ]
 }

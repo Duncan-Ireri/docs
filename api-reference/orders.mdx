@@ -1,0 +1,88 @@
+---
+title: "Orders"
+description: "Book orders against a quote, in short form or with your own stops, one at a time or in batches."
+---
+
+An order needs a quote. Get one with `POST /api/v2/quotes` or from the [checkout widget](/guides/checkout-widget), then book with its `quote_id` before it expires.
+
+## The short form
+
+For one drop from the dispatch point saved on your account:
+
+```json
+{
+  "quote_id": "4f1c2b0e-...",
+  "reference": "ORDER-1001",
+  "recipient": { "name": "Jane Mwangi", "phone": "+254712345678", "address": "Kilimani, Nairobi" },
+  "description": "2 cartons",
+  "collect_kes": 2400
+}
+```
+
+When the quote came from the checkout widget it already holds the buyer's pin and address, so `recipient.address` is optional.
+
+## Your own stops
+
+For several drops, or a pickup somewhere other than your dispatch point:
+
+```json
+{
+  "quote_id": "4f1c2b0e-...",
+  "reference": "ORDER-1002",
+  "fee_payer": "merchant_wallet",
+  "stops": [
+    { "kind": "pickup", "name": "Warehouse", "phone": "0711000000", "address": "Mombasa Rd" },
+    { "kind": "drop", "name": "Jo Otieno", "phone": "0712345678", "address": "Ngong Rd",
+      "collect_goods_kes": 1500, "requires_handover_code": true },
+    { "kind": "drop", "name": "Amina Hassan", "phone": "0722345678", "address": "Westlands" }
+  ]
+}
+```
+
+Send one form or the other, not both. Price a multi-drop order with `"drops": 2` (or more) on the quote.
+
+| Field | Notes |
+| --- | --- |
+| `quote_id` | Required |
+| `reference` | Required. Your order number; unique per account |
+| `fee_payer` | `buyer_on_delivery` (default), `buyer_paid`, `merchant_wallet` or `merchant_cod` |
+| `collect_kes`, `collect_goods_kes` | Cash for the goods, collected at the drop |
+| `requires_handover_code` | The recipient gets a 4-digit code on WhatsApp to give the driver |
+| `lat`, `lng` | Optional pin for any stop |
+| `hire_starts_at` | Hire orders: when the vehicle is needed |
+| `notes` | Anything the driver should know |
+
+The response is the order, including `tracking_url`, which the recipient also gets on WhatsApp.
+
+## Batches
+
+`POST /api/v2/orders/batch` takes `{"orders": [...]}`, up to 500 at a time. Each one is booked or refused on its own:
+
+```json
+{
+  "results": [
+    { "reference": "ORDER-1003", "order": { "id": "...", "status": "booked" } },
+    { "reference": "ORDER-1004", "error": "the quote has expired; ask for a new one" }
+  ]
+}
+```
+
+## Check a CSV before you send it
+
+`POST /api/v2/orders/validate` checks a CSV and books nothing. Send it as `text/csv` with these columns:
+
+```text
+reference,drop_name,drop_phone,drop_address,collect_goods_kes
+ORDER-2001,Jane Mwangi,0712345678,Kilimani,2400
+```
+
+```json
+{ "rows": 1, "valid": true, "errors": [] }
+```
+
+Each problem comes back with its row number, so you can fix the sheet and try again. The portal's **Book** page accepts the same file.
+
+## Cancel or return
+
+- `POST /api/v2/orders/{id}/cancel` works while the order is still `booked`.
+- `POST /api/v2/orders/{id}/return` with `{"reason": "..."}` books the return trip, priced by your return rate.

@@ -1,21 +1,21 @@
 ---
 title: "UrbnBox integrations"
-description: "Send UrbnBox deliveries from your own systems: create delivery orders, track them, and send parcels between towns."
+description: "Price and book UrbnBox deliveries from your own systems with API v2."
 ---
 
-UrbnBox delivers your orders to customers across Nairobi and between towns in
-Kenya. Connect your store, order system or backend so orders reach UrbnBox
-without retyping them.
+UrbnBox moves goods for Kenyan businesses: door delivery across Nairobi, town-to-town haulage, cold chain and truck hire. Connect your store, order system or backend so orders reach UrbnBox without anyone retyping them.
+
+Every integration uses one API, version 2, at `https://portal.urbnbox.io/api/v2`.
 
 <Columns cols={3}>
-  <Card title="Delivery orders" icon="truck" href="/quickstart">
-    Send a rider to your customer's door, now or at a scheduled time.
+  <Card title="Book from your server" icon="server" href="/quickstart">
+    Get a price, book the order, follow it to the door.
   </Card>
-  <Card title="Pickup points" icon="location-dot" href="/guides/pickup-point-shipments">
-    Send parcels between towns for the customer to collect.
+  <Card title="Delivery fee at checkout" icon="location-dot" href="/guides/checkout-widget">
+    Let buyers pin their location and see the fee before they pay.
   </Card>
-  <Card title="Ecommerce platforms" icon="cart-shopping" href="/guides/integration-options">
-    Connect Shopify or WooCommerce.
+  <Card title="Shopify and WooCommerce" icon="cart-shopping" href="/guides/integration-options">
+    Connect a store without writing code.
   </Card>
 </Columns>
 
@@ -23,27 +23,19 @@ without retyping them.
 
 | If you need to | Use |
 | --- | --- |
-| Create delivery orders from your backend | [Delivery orders](/quickstart) |
-| Check a spreadsheet of orders before sending it | [CSV validation](/api-reference/vendor/orders#check-a-csv-before-you-send-it) |
-| Send parcels between towns to a pickup point | [Pickup-point shipments](/guides/pickup-point-shipments) |
-| Offer UrbnBox rates in Shopify | [Shopify integration](/guides/shopify) |
-| Offer UrbnBox as a WooCommerce shipping method | [WooCommerce integration](/guides/woocommerce) |
-
-<Info>
-  The integration API uses `https://portal.urbnbox.io` as its base URL.
-</Info>
+| Book orders from your own backend | [Quickstart](/quickstart) |
+| Show buyers the delivery fee in your own checkout | [Checkout widget](/guides/checkout-widget) |
+| Offer UrbnBox door delivery in Shopify | [Shopify](/guides/shopify) |
+| Offer UrbnBox door delivery in WooCommerce | [WooCommerce](/guides/woocommerce) |
+| Check a spreadsheet of orders before sending it | [Orders: check a CSV](/api-reference/orders#check-a-csv-before-you-send-it) |
+| Move an integration built on the old v1 API | [Moving from v1](/guides/migrating-from-v1) |
 
 ## What UrbnBox handles
 
-UrbnBox calculates the delivery fee, assigns a rider, contacts your customer on
-WhatsApp, and moves the order from confirmation to delivery. For parcels sent
-between towns, UrbnBox also assigns the pickup points and issues the deposit
-and collection PINs.
+UrbnBox prices every order from your rate card, plans it onto a vehicle, messages your recipient on WhatsApp with a tracking link, and collects cash on delivery when you ask it to. Cash collected for your goods comes back to you in the next morning's remittance.
 
-Your platform remains responsible for checkout, customer payment, and deciding
-when to send an order.
+Your platform stays responsible for checkout, taking payment for the goods, and deciding when an order is ready to go.
 
-<Card title="Review the complete endpoint reference" icon="book"
-  href="/reference-overview">
-  Explore authentication, request fields, responses, and live request examples.
+<Card title="See every endpoint" icon="book" href="/reference-overview">
+  Authentication, request fields, responses and live request examples.
 </Card>

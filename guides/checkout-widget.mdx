@@ -1,68 +1,102 @@
 ---
 title: "Checkout widget"
-description: "Embed the UrbnBox locker booking widget in an existing checkout."
+description: "Let buyers pin their location and see the UrbnBox delivery fee in your own checkout."
 ---
 
-The checkout widget renders a locker picker, date fields, and customer contact
-fields. It creates a locker booking through the browser-safe public API.
+The widget sits in your checkout. The buyer searches for their estate or street, or uses their location, and can fine-tune the pin on a map. The widget shows the delivery fee and your delivery promise, then writes a quote into your checkout form. After the buyer pays, your server books the order with that quote.
 
-## Prerequisites
+It is plain JavaScript in a Shadow DOM, about 5 KB gzipped, in English or Swahili. The map only loads if the buyer asks for it.
 
-You need a publishable API key and an allowlisted checkout origin. Do not use a
-secret key.
+## Before you start
 
-## Embed the widget
+You need:
 
-Add the container and script near your checkout controls.
+- A **publishable** key (`dpk_live_` or `dpk_test_`) with your checkout's website listed on it, for example `https://shop.example.com`. Add staging sites too. Make it under **Integrations** in the portal.
+- A **secret** key (`dk_`) on your server for booking.
+- Your dispatch point and delivery promise, saved on the portal's **Checkout widget** page. Every quote is measured from that point.
+
+<Warning>
+  Never put a secret key in the page. The publishable key can only ask for prices, and only from the websites on its list.
+</Warning>
+
+## Add it to your checkout
 
 ```html
-<div
-  data-urbnbox-checkout
-  data-api-base="https://portal.urbnbox.io/api"
-  data-publishable-key="ubp_test_your_publishable_key"
-  data-name-selector="#customer-name"
-  data-phone-selector="#customer-phone"
-  data-confirmation-base="https://portal.urbnbox.io"
-></div>
+<div id="urbnbox-delivery"></div>
 
 <script
-  src="https://portal.urbnbox.io/static/widgets/urbnbox-checkout.js"
-  async
-></script>
+  src="https://portal.urbnbox.io/widget/v2.js"
+  data-key="dpk_live_..."
+  data-mount="#urbnbox-delivery"
+  data-form="#checkout"
+  data-cart-weight-kg="2.5"
+  async></script>
 ```
 
-The widget mounts after the document loads. It finds every element with the
-`data-urbnbox-checkout` attribute.
+You can also put the settings on the mount element itself, `<div data-urbnbox-delivery data-key="dpk_live_..." data-form="#checkout"></div>`, which is handy when the script tag is shared across pages.
 
-## Configuration
-
-| Attribute | Required | Description |
+| Setting | Required | What it does |
 | --- | --- | --- |
-| `data-api-base` | No | API root. Defaults to `/api` on the current origin |
-| `data-publishable-key` | Yes | Browser-safe publishable key |
-| `data-name-selector` | No | Selector used to prefill the customer's name |
-| `data-phone-selector` | No | Selector used to prefill the customer's phone |
-| `data-confirmation-base` | No | Origin used to resolve the booking receipt URL |
+| `data-key` | Yes | Your publishable key |
+| `data-mount` | On the script tag | Where to draw the widget |
+| `data-form` | No | The checkout form to write the quote into |
+| `data-cart-weight-kg` | No | Cart weight. Up to 120 kg goes by motorbike, up to 1,000 kg by van; heavier carts are not offered delivery |
+| `data-lang` | No | `en` (default) or `sw` |
+| `data-accent`, `data-radius`, `data-font` | No | Match your shop's colour, corner radius and font |
+| `data-callback` | No | Name of a global function to call with each quote |
 
-## Booking flow
+## What lands in your form
 
-The widget:
+When the buyer has a price, the widget adds hidden inputs to your form:
 
-1. Calls `GET /api/public/locker-bookings/options`.
-2. Renders active locker spaces.
-3. Collects the locker, date window, name, and phone number.
-4. Calls `POST /api/public/locker-bookings`.
-5. Links the customer to `/b/{token}`.
+| Field | Value |
+| --- | --- |
+| `urbnbox_quote_id` | The quote to book with |
+| `urbnbox_fee_kes` | The fee shown to the buyer, in whole KES |
+| `urbnbox_address`, `urbnbox_lat`, `urbnbox_lng` | Where the buyer pinned |
+| `urbnbox_fee_paid` | `false`: the buyer pays the driver on delivery |
 
-<Info>
-  The widget books a locker. Use the partner shipment API when you need
-  locker-to-locker parcel movement and shipment tracking.
-</Info>
+If the buyer is outside the area UrbnBox covers, the fields are cleared and the widget says so.
 
-## Test the integration
+## Building your total in JavaScript
 
-Open the checkout from an allowlisted origin. Confirm that the widget lists
-lockers and returns a booking receipt after submission.
+```html
+<script src="https://portal.urbnbox.io/widget/v2.js" async></script>
+<script>
+  window.addEventListener('load', function () {
+    UrbnBox.delivery({
+      key: 'dpk_live_...',
+      mount: '#urbnbox-delivery',
+      cart: { weightKg: 2.5 },
+      onQuote: function (q) { /* q.quoteId, q.feeKes, q.address, q.lat, q.lng */ },
+      onUnavailable: function (info) { /* info.message */ }
+    });
+  });
+</script>
+```
 
-If the widget shows an authentication error, verify the key type and allowed
-origin. If it shows no lockers, check current space availability.
+The widget also fires a bubbling `urbnbox:quote` event on its mount element.
+
+## Book when the buyer has paid
+
+From your server, send the quote with the buyer's details:
+
+```bash
+curl https://portal.urbnbox.io/api/v2/orders \
+  -H "X-API-Key: $URBNBOX_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "quote_id": "<urbnbox_quote_id from the form>",
+    "reference": "ORDER-1001",
+    "recipient": { "name": "Jane Mwangi", "phone": "+254712345678" },
+    "description": "Order #1001"
+  }'
+```
+
+The quote already holds the buyer's pin and address, so you don't need to send them again. Book with the quote ID rather than trusting the fee from the browser: UrbnBox charges what the quote says.
+
+## Test it
+
+Use a `dpk_test_` key from a website on its list. You get real prices, marked `test`, and orders booked with a test secret key are never dispatched. The portal's **Checkout widget** page also has a live preview.
+
+If the widget says the key does not work on this website, check that the exact origin (scheme and host, no path) is on the key.
